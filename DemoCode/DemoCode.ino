@@ -1,0 +1,96 @@
+#include <Servo.h>
+
+int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
+int R_wheel;
+int L_wheel;
+
+Servo L_Servo;
+Servo R_Servo;
+
+const int Ch1Pin = 7;
+const int Ch2Pin = 8;
+const int Ch3Pin = 9;
+const int Ch4Pin = 10;
+const int Ch5Pin = 11;
+const int Ch6Pin = 12;
+
+const int R_ServoPin = 0;
+const int L_ServoPin = 1;
+
+// setup() runs once then loop() runs
+void setup() {
+  pinMode(Ch1Pin, INPUT); // channel 1 is right stick lateral
+  pinMode(Ch2Pin, INPUT); // channel 2 is right stick vertical
+  pinMode(Ch3Pin, INPUT); // channel 3 is left stick vertical
+  pinMode(Ch4Pin, INPUT); // channel 4 is left stick lateral
+  pinMode(Ch5Pin, INPUT); // channel 5 is right knob
+  pinMode(Ch6Pin, INPUT); // channel 6 is left knob
+
+  R_Servo.attach(0);
+  L_Servo.attach(1);
+
+  //Flash the onboard LED on and Off 10x 
+  for (int i = 0; i < 10; i++) {
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+    delay(100);
+  }
+
+  Serial.begin(9600);
+}
+
+// Servo control must fall between 1000uS and 2000uS
+void SetLimits() {
+  constrain(L_wheel, 1000, 2000);
+  constrain(R_wheel, 1000, 2000);
+
+  R_Servo.writeMicroseconds(R_wheel);
+  L_Servo.writeMicroseconds(L_wheel);
+  
+}
+
+void AutoM()
+{
+  
+}
+
+void PrintRC()
+{
+  Serial.println(" RC Control Mode ");
+  Serial.print("Value Ch1 = ");
+  Serial.println(Ch1);
+  Serial.print("Value Ch2 = ");
+  Serial.println(Ch2);
+  Serial.print("Value Ch3 = ");
+  Serial.println(Ch3);
+  Serial.print("Value Ch4 = ");
+  Serial.println(Ch4);
+  Serial.print("Value Ch5 = ");
+  Serial.println(Ch5);
+  Serial.print("Value Ch6 = ");
+  Serial.println(Ch6);
+  delay(1000);
+}
+
+void loop() {
+  Ch1 = pulseIn(Ch1Pin, HIGH, 21000);
+  Ch2 = pulseIn(Ch2Pin, HIGH, 21000);
+  Ch3 = pulseIn(Ch3Pin, HIGH, 21000);
+  Ch4 = pulseIn(Ch4Pin, HIGH, 21000);
+  Ch5 = pulseIn(Ch5Pin, HIGH, 21000);
+  Ch6 = pulseIn(Ch6Pin, HIGH, 21000);
+
+  
+
+//  if (Ch5 > 1800)
+//  {
+//    DriveServosRC();
+//  }
+//  else
+//  {
+//    AutoM();
+//  }
+
+  PrintRC();
+}
