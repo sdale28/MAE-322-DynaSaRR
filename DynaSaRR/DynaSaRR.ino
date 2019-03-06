@@ -7,6 +7,12 @@ int L_wheel;
 Servo L_Servo;
 Servo R_Servo;
 
+const int R_ServoPin = 0;
+const int L_ServoPin = 1;
+const int R_lightSensorPin = 2;
+const int L_lightSensorPin = 3;
+const int distSensorPin = 4;
+
 const int Ch1Pin = 7;
 const int Ch2Pin = 8;
 const int Ch3Pin = 9;
@@ -25,6 +31,15 @@ const int ServoHigh = 2000;
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
 
+const int sharpStopValue = 400; // Value of sharp sensor indicating stopping distance
+
+int L_lightSensor;    // hold photoresistor value
+int R_lightSensor;    // hold photoresistor value
+int distSensor;       // hold sharp sensor value
+int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
+int L_speed;          // speed changes for left wheel
+int R_speed;          // speed changes for right wheel
+
 // setup() runs once then loop() runs
 void setup() {
   pinMode(Ch1Pin, INPUT); // channel 1 is right stick lateral
@@ -37,6 +52,9 @@ void setup() {
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
 
+  L_speed = transmitterZeroFreq;
+  R_speed = transmitterZeroFreq;
+
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
     digitalWrite(onBoardLEDPin, HIGH);
@@ -48,8 +66,14 @@ void setup() {
   Serial.begin(9600);
 }
 
-void DriveServosRC()
-{
+void stopDriving(int delayTime) {
+  L_Servo.writeMilliseconds(transmitterZeroFreq);
+  R_Servo.writeMilliseconds(transmitterZeroFreq);
+
+  delay(delayTime);
+}
+
+void DriveServosRC() {
   if (Ch2 <= transmitterZeroFreq) {
     L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
     R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
@@ -69,8 +93,7 @@ void DriveServosRC()
   R_Servo.writeMicroseconds(R_wheel);
 }
 
-void PrintRC()
-{
+void PrintRC() {
   Serial.println(" RC Control Mode ");
   Serial.print("Value Ch1 = ");
   Serial.println(Ch1);
@@ -87,6 +110,22 @@ void PrintRC()
   delay(1000);
 }
 
+void updateSensors() {
+  L_lightSensor = analogRead(L_lightSensorPin);
+  R_lightSensor = analogRead(R_lightSensorPin);
+
+  lightSensorDiff = abs(L_lightSensor - R_lightSensor);
+
+  for (int i = 0; i < 4; i++) {
+    sharpVal += SharpVal + analogRead(sharpPin);
+  }
+  sharpVal /= 5;
+
+  if (sharpVal >= sharpStopValue) {
+    stopDriving(100);
+  }
+}
+
 void loop() {
   Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
   Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
@@ -96,7 +135,6 @@ void loop() {
   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
 
   
-
 //  if (Ch5 > 1800)
 //  {
 //    DriveServosRC();
