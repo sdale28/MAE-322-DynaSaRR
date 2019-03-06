@@ -16,6 +16,10 @@ Board: Teensy 3.5
 
 ## Software
 ----
+
+Primary file: "DynaSaRR.ino"
+<br/><br/>
+
 ### Required Software: 
   - [Arduino][3]
   - [Teensyduino][4]
@@ -34,15 +38,17 @@ Board: Teensy 3.5
  - Download and install [GitHub Desktop][7].
  - Download and install [Git][10].
  - Go to the [Repo][11] > "Clone or Download" > "Open in Desktop" (Will open in GitHub Desktop application)> Save the repo to a folder on your computer (this will not move in the future). 
- - Open code to edit in Arduino editor (or Visual Studio).
- - Always "Commit" your code at the end of your programming session! Otherwise no one can see your code changes and if something happens to your computer, the code is lost forever.
-
+ - Open code to edit in Arduino editor (or Visual Studio Code).
+ - Always "push" your code at the end of your programming session! Otherwise no one can see your code changes and if something happens to your computer, the code is lost forever.
+ - In GitHub Desktop at the end of your Arduino session, "Commit to master" (to locally save all new changes to the version history) then "Push origin" to upload the code to GitHub.
+<br/><br/>
 ### Helpful Git terms:
  - Repo = repository: the folder of all of the files in the project.
  - Push = Push all local branch commits to the repository branch on the GitHub servers.
  - Commit = Record snapshot of files in repository (permanently available in version history). 
  - Pull = Download and incorporate changes.
 
+<br/><br/>
 Brian Patton's super helpful [video series][5].
 
 
