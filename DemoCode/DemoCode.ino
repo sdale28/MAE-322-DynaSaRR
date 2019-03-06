@@ -16,6 +16,9 @@ const int Ch6Pin = 12;
 
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
+const int R_lightSensor = 2;
+const int L_lightSensor = 3;
+const int distSensor = 4;
 
 // Servo control must fall between 1000uS and 2000uS
 const int ServoLow = 1000;
