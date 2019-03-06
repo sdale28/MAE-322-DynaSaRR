@@ -20,7 +20,11 @@ Recommended Software:
   - [Visual Studio Code][2]
   - [T6Config and Driver][1]
 
+
+Brian Patton's super helpful [video series][5].
+
   [1]:http://www.rcyachts.com/KitInfo/T6Confg/T6Config.htm
   [2]:https://code.visualstudio.com/
   [3]:https://www.arduino.cc/en/Main/Software
   [4]:https://www.pjrc.com/teensy/teensyduino.html
+  [5]:https://www.youtube.com/playlist?list=PLYI2Xb6BPCrrMnmvayfU2e3PCve0yNGhx
