@@ -17,6 +17,10 @@ const int Ch6Pin = 12;
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
 
+// Servo control must fall between 1000uS and 2000uS
+const int ServoLow = 1000;
+const int ServoHigh = 2000;
+
 // setup() runs once then loop() runs
 void setup() {
   pinMode(Ch1Pin, INPUT); // channel 1 is right stick lateral
@@ -42,17 +46,29 @@ void setup() {
 
 // Servo control must fall between 1000uS and 2000uS
 void SetLimits() {
-  constrain(L_wheel, 1000, 2000);
-  constrain(R_wheel, 1000, 2000);
+  constrain(L_wheel, ServoLow, ServoHigh);
+  constrain(R_wheel, ServoLow, ServoHigh);
 
   R_Servo.writeMicroseconds(R_wheel);
   L_Servo.writeMicroseconds(L_wheel);
   
 }
 
-void AutoM()
+void DriveServosRC()
 {
-  
+  if (Ch2 <= 1500) {
+    L_wheel = Ch1 + Ch2 - 1500;
+    R_wheel = Ch1 - Ch2 + 1500;
+  }
+  else {
+    int Ch1_mod = map(Ch1, ServoLow, ServoHigh, ServoLow, ServoHigh); // Invert CH1 axis to keep the math similar
+    int Ch2_mod = map(Ch2, ServoLow, ServoHigh, ServoHigh, ServoLow); // Slow reaction time
+
+    L_wheel = Ch1_mod + Ch2 - 1500;
+    R_wheel = Ch2_mod - Ch2 + 1500;
+  }
+
+  SetLimits();
 }
 
 void PrintRC()
@@ -92,5 +108,6 @@ void loop() {
 //    AutoM();
 //  }
 
-  PrintRC();
+  DriveServosRC();
+  //PrintRC();
 }
