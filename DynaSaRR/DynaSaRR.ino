@@ -9,9 +9,9 @@ Servo R_Servo;
 
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
-const int R_lightSensorPin = 2;
-const int L_lightSensorPin = 3;
-const int distSensorPin = 4;
+const int R_lightSensorPin = A7;
+const int L_lightSensorPin = A8;
+const int distSensorPin = A6;
 
 const int Ch1Pin = 7;   // channel 1 is right stick lateral
 const int Ch2Pin = 8;   // channel 2 is right stick vertical
@@ -28,7 +28,7 @@ const int ServoHigh = 2000;
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
 
-const int autonomousActivationFrequency = 1800;
+const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
 const int distSensorStopValue = 400; // Value of sharp sensor indicating stopping distance
 const int lightThreshold = 1000; // sensor value for detecting target light (vs. noise/reflection)
@@ -48,6 +48,10 @@ void setup() {
   pinMode(Ch4Pin, INPUT); // channel 4 is left stick lateral
   pinMode(Ch5Pin, INPUT); // channel 5 is right knob
   pinMode(Ch6Pin, INPUT); // channel 6 is left knob
+
+  pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
+  pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
+  pinMode(distSensorPin, INPUT);
 
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
@@ -74,6 +78,7 @@ void stopDriving(int delayTime) {
 }
 
 void driveServosRC() {
+  Serial.println("RC");
   if (Ch2 <= transmitterZeroFreq) {
     L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
     R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
@@ -124,6 +129,14 @@ void updateSensors() {
   if (distSensor >= distSensorStopValue) {
     stopDriving(100);
   }
+
+  Serial.print("Left Sensor = ");
+  Serial.println(L_lightSensor);
+  Serial.print("Right Sensor = ");
+  Serial.println(R_lightSensor);
+  Serial.print("Distance Sensor = ");
+  Serial.println(distSensor);
+  delay(100);
 }
 
 void turnLeft(int delayTime) {
@@ -151,8 +164,11 @@ void driveForward(int delayTime) {
 }
 
 void autonomousMode() {
+
+  //Serial.println("Autonomous");
   updateSensors();
 
+  
   while (L_lightSensor > lightThreshold) {
     R_speed = 1500;
     turnLeft(5);
@@ -176,9 +192,11 @@ void autonomousMode() {
     L_speed = 1620;
     driveForward(20);
   }
+  
 }
 
 void loop() {
+  
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
   if (Ch5 <= autonomousActivationFrequency) {
@@ -193,7 +211,15 @@ void loop() {
     Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
   }
-
   //driveServosRC();
-  //printRC();
+
+  /*
+  Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
+    Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
+    Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
+    Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
+    Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+    Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+  printRC();
+  */
 }
