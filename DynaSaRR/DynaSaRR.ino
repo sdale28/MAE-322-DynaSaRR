@@ -13,16 +13,13 @@ const int R_lightSensorPin = 2;
 const int L_lightSensorPin = 3;
 const int distSensorPin = 4;
 
-const int Ch1Pin = 7;
-const int Ch2Pin = 8;
-const int Ch3Pin = 9;
-const int Ch4Pin = 10;
-const int Ch5Pin = 11;
-const int Ch6Pin = 12;
+const int Ch1Pin = 7;   // channel 1 is right stick lateral
+const int Ch2Pin = 8;   // channel 2 is right stick vertical
+const int Ch3Pin = 9;   // channel 3 is left stick vertical
+const int Ch4Pin = 10;  // channel 4 is left stick lateral
+const int Ch5Pin = 11;  // channel 5 is right knob
+const int Ch6Pin = 12;  // channel 6 is left knob
 const int onBoardLEDPin = 13;
-
-const int R_ServoPin = 0;
-const int L_ServoPin = 1;
 
 // Servo control must fall between 1000uS and 2000uS
 const int ServoLow = 1000;
@@ -31,7 +28,10 @@ const int ServoHigh = 2000;
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
 
-const int sharpStopValue = 400; // Value of sharp sensor indicating stopping distance
+const int autonomousActivationFrequency = 1800;
+
+const int distSensorStopValue = 400; // Value of sharp sensor indicating stopping distance
+const int lightThreshold = 1000; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -67,13 +67,13 @@ void setup() {
 }
 
 void stopDriving(int delayTime) {
-  L_Servo.writeMilliseconds(transmitterZeroFreq);
-  R_Servo.writeMilliseconds(transmitterZeroFreq);
+  L_Servo.writeMicroseconds(transmitterZeroFreq);
+  R_Servo.writeMicroseconds(transmitterZeroFreq);
 
   delay(delayTime);
 }
 
-void DriveServosRC() {
+void driveServosRC() {
   if (Ch2 <= transmitterZeroFreq) {
     L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
     R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
@@ -93,7 +93,7 @@ void DriveServosRC() {
   R_Servo.writeMicroseconds(R_wheel);
 }
 
-void PrintRC() {
+void printRC() {
   Serial.println(" RC Control Mode ");
   Serial.print("Value Ch1 = ");
   Serial.println(Ch1);
@@ -117,23 +117,102 @@ void updateSensors() {
   lightSensorDiff = abs(L_lightSensor - R_lightSensor);
 
   for (int i = 0; i < 4; i++) {
-    sharpVal += SharpVal + analogRead(sharpPin);
+    distSensor += distSensor + analogRead(distSensorPin);
   }
-  sharpVal /= 5;
+  distSensor /= 5;
 
-  if (sharpVal >= sharpStopValue) {
+  if (distSensor >= distSensorStopValue) {
     stopDriving(100);
   }
-  // test
+}
+
+void turnLeft(int delayTime) {
+  R_Servo.writeMicroseconds(R_speed);
+  L_Servo.writeMicroseconds(1620);
+  delay(delayTime);
+}
+
+void turnRight(int delayTime) {
+  R_Servo.writeMicroseconds(1450);
+  L_Servo.writeMicroseconds(L_speed);
+  delay(delayTime);
+}
+
+void driveBackward(int delayTime) {
+  R_Servo.writeMicroseconds(ServoHigh);
+  L_Servo.writeMicroseconds(ServoLow);
+  delay(delayTime);
+}
+
+void driveForward(int delayTime) {
+  R_Servo.writeMicroseconds(1450); //ServoLow);
+  L_Servo.writeMicroseconds(1600); //ServoHigh);
+  delay(delayTime);
+}
+
+void autonomousMode() {
+  updateSensors();
+
+  while (L_lightSensor > lightThreshold) {
+    R_speed = 1500;
+    turnLeft(5);
+    updateSensors();
+  }
+
+  if (lightSensorDiff > 70) {
+    if (L_lightSensor > R_lightSensor) {
+      R_speed += 5;
+      constrain(R_speed, ServoLow, 1480);
+      turnLeft(10);
+    }
+    else {
+      L_speed -= 5;
+      constrain(L_speed, 1540, ServoHigh);
+      turnRight(10);
+    }
+  } 
+  else {
+    R_speed = 1450;
+    L_speed = 1620;
+    driveForward(20);
+  }
 }
 
 void loop() {
-  Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
-  Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-  Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
-  Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-  Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+
+  // if (Ch5 > autonomousActivationFrequency) {
+  //   Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
+  //   Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
+  //   Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
+  //   Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
+  //   //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+  //   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+  //   driveServosRC();
+  // }
+  // else {
+  //   autonomousMode();
+  // }
+
+  if (Ch5 <= autonomousActivationFrequency) {
+     autonomousMode();
+  }
+  else {
+    Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
+    Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
+    Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
+    Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
+    //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+    Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+    driveServosRC();
+  }
+
+  // Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
+  // Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
+  // Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
+  // Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
+  // Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+  // Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
 
   
 //  if (Ch5 > 1800)
@@ -145,6 +224,6 @@ void loop() {
 //    AutoM();
 //  }
 
-  DriveServosRC();
-  //PrintRC();
+  //driveServosRC();
+  //printRC();
 }
