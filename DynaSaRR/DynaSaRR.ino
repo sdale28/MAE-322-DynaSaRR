@@ -181,19 +181,6 @@ void autonomousMode() {
 void loop() {
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
-  // if (Ch5 > autonomousActivationFrequency) {
-  //   Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
-  //   Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-  //   Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
-  //   Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-  //   //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-  //   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
-  //   driveServosRC();
-  // }
-  // else {
-  //   autonomousMode();
-  // }
-
   if (Ch5 <= autonomousActivationFrequency) {
      autonomousMode();
   }
@@ -206,23 +193,6 @@ void loop() {
     Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
   }
-
-  // Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
-  // Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-  // Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
-  // Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-  // Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-  // Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
-
-  
-//  if (Ch5 > 1800)
-//  {
-//    DriveServosRC();
-//  }
-//  else
-//  {
-//    AutoM();
-//  }
 
   //driveServosRC();
   //printRC();
