@@ -70,12 +70,6 @@ void setup() {
   Serial.begin(9600);
 }
 
-void stopDriving(int delayTime) {
-  L_Servo.writeMicroseconds(transmitterZeroFreq);
-  R_Servo.writeMicroseconds(transmitterZeroFreq);
-
-  delay(delayTime);
-}
 
 void driveServosRC() {
   Serial.println("RC");
@@ -121,6 +115,8 @@ void updateSensors() {
 
   lightSensorDiff = abs(L_lightSensor - R_lightSensor);
 
+  distSensor = analogRead(distSensorPin);
+
   for (int i = 0; i < 4; i++) {
     distSensor += distSensor + analogRead(distSensorPin);
   }
@@ -160,6 +156,13 @@ void driveBackward(int delayTime) {
 void driveForward(int delayTime) {
   R_Servo.writeMicroseconds(1450); //ServoLow);
   L_Servo.writeMicroseconds(1600); //ServoHigh);
+  delay(delayTime);
+}
+
+void stopDriving(int delayTime) {
+  L_Servo.writeMicroseconds(transmitterZeroFreq);
+  R_Servo.writeMicroseconds(transmitterZeroFreq);
+
   delay(delayTime);
 }
 
