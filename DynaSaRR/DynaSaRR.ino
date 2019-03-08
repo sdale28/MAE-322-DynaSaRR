@@ -147,7 +147,7 @@ void turnRight(int delayTime) {
   L_Servo.writeMicroseconds(L_speed);
   delay(delayTime);
 }
-
+//dumb
 void driveForward(int delayTime) {
   int subtractMeDaddy = 100;
   if (distSensor >= distSensorSlowValue) {
