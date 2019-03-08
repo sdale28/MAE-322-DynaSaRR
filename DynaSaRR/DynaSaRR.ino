@@ -30,8 +30,8 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 400; // Value of sharp sensor indicating stopping distance
-const int lightThreshold = 1000; // sensor value for detecting target light (vs. noise/reflection)
+const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance
+const int lightThreshold = 100; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -74,15 +74,15 @@ void setup() {
 void driveServosRC() {
   Serial.println("RC");
   if (Ch2 <= transmitterZeroFreq) {
-    L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
-    R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
+    R_wheel = Ch1 + Ch2 - transmitterZeroFreq;
+    L_wheel = Ch1 - Ch2 + transmitterZeroFreq;
   }
   else {
     int Ch1_mod = map(Ch1, ServoLow, ServoHigh, ServoLow, ServoHigh); // Invert CH1 axis to keep the math similar
     int Ch2_mod = map(Ch2, ServoLow, ServoHigh, ServoHigh, ServoLow); // Slow reaction time
 
-    L_wheel = Ch1_mod + Ch2 - transmitterZeroFreq;
-    R_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
+    R_wheel = Ch1_mod + Ch2 - transmitterZeroFreq;
+    L_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
   }
 
   constrain(L_wheel, ServoLow, ServoHigh);
@@ -122,9 +122,9 @@ void updateSensors() {
   }
   distSensor /= 5;
 
-  if (distSensor >= distSensorStopValue) {
-    stopDriving(100);
-  }
+  //if (distSensor >= distSensorStopValue) {
+    //stopDriving(100);
+  //}
 
   Serial.print("Left Sensor = ");
   Serial.println(L_lightSensor);
@@ -147,15 +147,15 @@ void turnRight(int delayTime) {
   delay(delayTime);
 }
 
-void driveBackward(int delayTime) {
-  R_Servo.writeMicroseconds(ServoHigh);
-  L_Servo.writeMicroseconds(ServoLow);
+void driveForward(int delayTime) {
+  R_Servo.writeMicroseconds(ServoHigh - 300);
+  L_Servo.writeMicroseconds(ServoLow + 300);
   delay(delayTime);
 }
 
-void driveForward(int delayTime) {
+void driveBackward(int delayTime) {
   R_Servo.writeMicroseconds(1450); //ServoLow);
-  L_Servo.writeMicroseconds(1600); //ServoHigh);
+  L_Servo.writeMicroseconds(1550); //ServoHigh);
   delay(delayTime);
 }
 
@@ -164,14 +164,31 @@ void stopDriving(int delayTime) {
   R_Servo.writeMicroseconds(transmitterZeroFreq);
 
   delay(delayTime);
+  Serial.println("StopDriving");
 }
 
 void autonomousMode() {
 
   //Serial.println("Autonomous");
   updateSensors();
-
   
+
+    if (distSensor < distSensorStopValue) {
+    
+      while ((L_lightSensor > lightThreshold) && (Ch5 <= autonomousActivationFrequency)) {
+        //updateSensors();
+        Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+        R_speed = 1500;
+        turnLeft(5);
+        updateSensors();
+      }
+
+    driveForward(5);
+  }
+  else {
+    stopDriving(100);
+  }
+  /*
   while (L_lightSensor > lightThreshold) {
     R_speed = 1500;
     turnLeft(5);
@@ -190,11 +207,14 @@ void autonomousMode() {
       turnRight(10);
     }
   } 
-  else {
+  else if (distSensor < distSensorStopValue) {
     R_speed = 1450;
     L_speed = 1620;
-    driveForward(20);
+    driveBackward(20);
   }
+  else {
+    stopDriving(100);
+  }*/
   
 }
 
@@ -203,7 +223,8 @@ void loop() {
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
   if (Ch5 <= autonomousActivationFrequency) {
-     autonomousMode();
+    //updateSensors();
+    autonomousMode();
   }
   else {
     Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
