@@ -123,13 +123,16 @@ void updateSensors() {
   }
   distSensor /= 5;
 
-  // Serial.print("Left Sensor = ");
-  // Serial.println(L_lightSensor);
-  // Serial.print("Right Sensor = ");
-  // Serial.println(R_lightSensor);
-  // Serial.print("Distance Sensor = ");
-  // Serial.println(distSensor);
-  
+  //if (distSensor >= distSensorStopValue) {
+    //stopDriving(100);
+  //}
+
+  Serial.print("Left Sensor = ");
+  Serial.println(L_lightSensor);
+  Serial.print("Right Sensor = ");
+  Serial.println(R_lightSensor);
+  Serial.print("Distance Sensor = ");
+  Serial.println(distSensor);
   delay(100);
 }
 
@@ -173,46 +176,96 @@ void autonomousMode() {
 
   //Serial.println("Autonomous");
   updateSensors();
-  Serial.print("distance");
-  Serial.println(distSensor);
+    Serial.print("distance");
+    Serial.println(distSensor);
 
-  if (distSensor < distSensorStopValue) {
-    if (L_lightSensor <= lightThreshold) {
-      if (lightSensorDiff > 70) {
-        if (L_lightSensor > R_lightSensor) {
-          R_speed += 5;
-          constrain(R_speed, ServoLow, 1480);
-          turnLeft(10);
+    if (distSensor < distSensorStopValue) {
+    
+      // while ((L_lightSensor > lightThreshold) && (Ch5 <= autonomousActivationFrequency)) {
+      //   //updateSensors();
+      //   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+      //   R_speed = 1500;
+      //   turnLeft(5);
+      //   updateSensors();
+
+      //   // if (L_lightSensor > R_lightSensor) {
+      //   //   R_speed += 5;
+      //   //   constrain(R_speed, ServoLow, 1480);
+      //   //   turnLeft(10);
+      //   // }
+      //   // else {
+      //   //   L_speed -= 5;
+      //   //   constrain(L_speed, 1540, ServoHigh);
+      //   //   turnRight(10);
+      //   // }
+      // }
+
+      if (L_lightSensor <= lightThreshold) {
+        if (lightSensorDiff > 70) {
+          if (L_lightSensor > R_lightSensor) {
+            R_speed += 5;
+            constrain(R_speed, ServoLow, 1480);
+            turnLeft(10);
+          }
+          else {
+            L_speed -= 5;
+            constrain(L_speed, 1540, ServoHigh);
+            turnRight(10);
+          }
         }
         else {
-          L_speed -= 5;
-          constrain(L_speed, 1540, ServoHigh);
-          turnRight(10);
+          driveForward(5);
         }
-      }
+      } 
       else {
-        driveForward(5);
+        R_speed = 1500;
+        turnLeft(5);
+        updateSensors();
       }
-    } 
-    else {
-      R_speed = 1500;
-      turnLeft(5);
-      updateSensors();
-    }
+
+      //driveForward(5);
   }
   else {
     stopDriving(100);
     delay(100);
   }
   
+  // while (L_lightSensor > lightThreshold) {
+  //   R_speed = 1500;
+  //   turnLeft(5);
+  //   updateSensors();
+  // }
+/*
+  if (lightSensorDiff > 70) {
+    if (L_lightSensor > R_lightSensor) {
+      R_speed += 5;
+      constrain(R_speed, ServoLow, 1480);
+      turnLeft(10);
+    }
+    else {
+      L_speed -= 5;
+      constrain(L_speed, 1540, ServoHigh);
+      turnRight(10);
+    }
+  } 
+  else if (distSensor < distSensorStopValue) {
+    R_speed = 1450;
+    L_speed = 1620;
+    driveBackward(20);
+  }
+  else {
+    stopDriving(100);
+  }*/
+  
 }
 
 void loop() {
   
-  //Serial.println("Loop");
+  Serial.println("Loop");
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
   if (Ch5 <= autonomousActivationFrequency) {
+    //updateSensors();
     autonomousMode();
   }
   else {
@@ -224,6 +277,7 @@ void loop() {
     Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
   }
+  //driveServosRC();
 
   /*
   Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
