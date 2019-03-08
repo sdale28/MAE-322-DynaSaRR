@@ -31,7 +31,8 @@ const int transmitterTimeout = 21000;
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
 const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance
-const int lightThreshold = 100; // sensor value for detecting target light (vs. noise/reflection)
+const int distSensorSlowValue = 2000;
+const int lightThreshold = 200; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -148,8 +149,12 @@ void turnRight(int delayTime) {
 }
 
 void driveForward(int delayTime) {
-  R_Servo.writeMicroseconds(ServoHigh - 300);
-  L_Servo.writeMicroseconds(ServoLow + 300);
+  int subtractMeDaddy = 100;
+  if (distSensor >= distSensorSlowValue) {
+    subtractMeDaddy = 300;
+  }
+  R_Servo.writeMicroseconds(ServoHigh - subtractMeDaddy);
+  L_Servo.writeMicroseconds(ServoLow + subtractMeDaddy);
   delay(delayTime);
 }
 
@@ -171,30 +176,66 @@ void autonomousMode() {
 
   //Serial.println("Autonomous");
   updateSensors();
-  
+    Serial.print("distance");
+    Serial.println(distSensor);
 
     if (distSensor < distSensorStopValue) {
     
-      while ((L_lightSensor > lightThreshold) && (Ch5 <= autonomousActivationFrequency)) {
-        //updateSensors();
-        Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+      // while ((L_lightSensor > lightThreshold) && (Ch5 <= autonomousActivationFrequency)) {
+      //   //updateSensors();
+      //   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+      //   R_speed = 1500;
+      //   turnLeft(5);
+      //   updateSensors();
+
+      //   // if (L_lightSensor > R_lightSensor) {
+      //   //   R_speed += 5;
+      //   //   constrain(R_speed, ServoLow, 1480);
+      //   //   turnLeft(10);
+      //   // }
+      //   // else {
+      //   //   L_speed -= 5;
+      //   //   constrain(L_speed, 1540, ServoHigh);
+      //   //   turnRight(10);
+      //   // }
+      // }
+
+      if (L_lightSensor <= lightThreshold) {
+        if (lightSensorDiff > 70) {
+          if (L_lightSensor > R_lightSensor) {
+            R_speed += 5;
+            constrain(R_speed, ServoLow, 1480);
+            turnLeft(10);
+          }
+          else {
+            L_speed -= 5;
+            constrain(L_speed, 1540, ServoHigh);
+            turnRight(10);
+          }
+        }
+        else {
+          driveForward(5);
+        }
+      } 
+      else {
         R_speed = 1500;
         turnLeft(5);
         updateSensors();
       }
 
-    driveForward(5);
+      //driveForward(5);
   }
   else {
     stopDriving(100);
+    delay(100);
   }
-  /*
-  while (L_lightSensor > lightThreshold) {
-    R_speed = 1500;
-    turnLeft(5);
-    updateSensors();
-  }
-
+  
+  // while (L_lightSensor > lightThreshold) {
+  //   R_speed = 1500;
+  //   turnLeft(5);
+  //   updateSensors();
+  // }
+/*
   if (lightSensorDiff > 70) {
     if (L_lightSensor > R_lightSensor) {
       R_speed += 5;
@@ -220,6 +261,7 @@ void autonomousMode() {
 
 void loop() {
   
+  Serial.println("Loop");
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
   if (Ch5 <= autonomousActivationFrequency) {
