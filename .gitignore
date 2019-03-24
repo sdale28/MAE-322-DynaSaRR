@@ -1,0 +1,11 @@
+*.hex
+*.aux
+.vscode/
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.bin
+*.eep
+*.elf
+*.code-workspace
