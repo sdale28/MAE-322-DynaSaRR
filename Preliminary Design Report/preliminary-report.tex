@@ -4,8 +4,54 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
 
 \begin{document}
+
 \input{title-page.tex}
-blah blah blah
+\input{team-roles.tex}
+
+\section{Executive Summary}
+a) The Executive Summary is the only portion of the Report that most people read. Therefore, this section must capture the interest of the reader and ‘sell’ the design, at least to the point where the reader feels compelled to read the report in greater depth to understand the design.\\
+b) A statement of key specs, for example: The robot is designed to autonomously (or manually) retrieve a medical kit and breach a 12” obstacle wall as it delivers the kit weighing X pounds to a victim in Y seconds behind an obstacle Z inches high.\\
+c) Figures generally are not used in the Executive Summary.\\
+d) The Executive Summary should not exceed 1 page. 
+\newpage
+
+
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+
+a) Present the objectives of the design with more detail than that presented in the Executive Summary.\\
+b) Any research on existing robotic structures used in retrieval and obstacle-breaching applications should be presented and discussed.\\
+c) The basic design concept is outlined, along with the philosophy (e.g. simplicity, robustness and/or weight/size considerations) which drove your design decisions. \\
+d) The Introduction should refer to a simple clear schematic drawing (not necessarily Creo; could be a Word Drawing figure, or similar) of the overall configuration of your system (e.g. simple blockdiagram of robot in proximity to the medical kit, wall and goal).
+
+
+\section{Specifications}
+a) List the specs you established for your SaRR:\\
+i) Weight and size of the SaRR\\
+ii) Time to retrieve the medical kit and deliver to victim (goal)\\
+iii) Maximum speed and estimated range of SaRR\\
+b) Specify SaRR operational and navigational modes (i.e. how the SaRR is operated autonomously and manually) 
+
+
+\section{Detailed Design and Analysis}
+a) Static and dynamic analysis (free-body analysis, balance, required accelerations, motor sizing,…)\\
+b) Design Loads: specify loads, placements, and reactions of all key load-bearing members.\\
+c) Preliminary design considerations for med-kit retrieval and placement mechanism\\
+d) Initial predictions of performance: speed, turning radius, wall-breach times, etc…
+
+
+\section{Project Management}
+a) Identify team leader and personnel along with task responsibilities.\\
+b) Provide schedule which indicates tasks and milestones (note number of anticipated hours required per task)\\
+c) Discuss overall management approach (e.g. meetings, identification of problems and approach to resolve critical issues…)
+
+
 \end{document}
