@@ -14,6 +14,11 @@ Board: Teensy 3.5
 
 <br/>
 
+## Project Reports
+ - [Preliminary Design Report][12]
+ 
+<br/>
+
 ## Software
 ----
 
@@ -67,3 +72,4 @@ Brian Patton's super helpful [video series][5].
   [9]:https://github.com/
   [10]:https://git-scm.com/
   [11]:https://github.com/sdale28/MAE-322-DynaSaRR
+  [12]:PreliminaryDesignReport/MAE_322_DynaSaRR.pdf
