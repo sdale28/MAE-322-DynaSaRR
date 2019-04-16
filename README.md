@@ -39,7 +39,7 @@ Primary file: "DynaSaRR.ino"
 <br/><br/>
 
 ### Software Setup:
- - Install [Arduino][3].
+ - Install [Arduino][3]\*.
  - Install [Teensyduino][4].
  - Create a [GitHub][9] account.
  - [Send Sam][8] your GitHub username to contribute to the code. Here's the [link for Sam][6] to add collaborators.
