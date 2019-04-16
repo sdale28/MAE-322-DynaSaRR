@@ -16,7 +16,7 @@ Board: Teensy 3.5
 
 ## Project Reports
  - [Preliminary Design Report][12]
- 
+
 <br/>
 
 ## Software
@@ -26,13 +26,16 @@ Primary file: "DynaSaRR.ino"
 <br/><br/>
 
 ### Required Software: 
-  - [Arduino][3]
+  - [Arduino][3]\*
   - [Teensyduino][4]
 <br/><br/>
 ### Recommended Software:
   - [GitHub Desktop][7]
   - [Visual Studio Code][2]
   - [T6Config and Driver][1]
+<br/><br/>
+
+\* Note that as of 4/16/19 Teensyduino does not work with Arduino 1.8.9. You must install Arduino 1.8.8, then install Teensyduino and it should work. [This link][13] takes you to install previous versions of Arduino. And [this link][3] let's you install the current version of Arduino.
 <br/><br/>
 
 ### Software Setup:
@@ -73,3 +76,4 @@ Brian Patton's super helpful [video series][5].
   [10]:https://git-scm.com/
   [11]:https://github.com/sdale28/MAE-322-DynaSaRR
   [12]:PreliminaryDesignReport/MAE_322_DynaSaRR.pdf
+  [13]:https://www.arduino.cc/en/Main/OldSoftwareReleases#previous
