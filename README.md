@@ -35,7 +35,7 @@ Primary file: "DynaSaRR.ino"
   - [T6Config and Driver][1]
 <br/><br/>
 
-\* Note that as of 4/16/19 Teensyduino does not work with Arduino 1.8.9. You must install Arduino 1.8.8, then install Teensyduino and it should work. [This link][13] takes you to install previous versions of Arduino. And [this link][3] let's you install the current version of Arduino.
+\* Note that as of 4/16/19 Teensyduino does not work with Arduino 1.8.9. You must install Arduino 1.8.8, then install Teensyduino and it should work. [This link][13] takes you to install previous versions of Arduino. And [this link][3] let's you install the current version of Arduino. Also note that only one version can be installed at a time.
 <br/><br/>
 
 ### Software Setup:
