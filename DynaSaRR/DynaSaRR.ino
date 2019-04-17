@@ -146,12 +146,12 @@ void turnRight(int delayTime) {
 }
 
 void driveForward(int delayTime) {
-  int subtractMeDaddy = 100;
+  int subtractValue = 100;
   if (distSensor >= distSensorSlowValue) {
-    subtractMeDaddy = 300;
+    subtractValue = 300;
   }
-  R_Servo.writeMicroseconds(ServoHigh - subtractMeDaddy);
-  L_Servo.writeMicroseconds(ServoLow + subtractMeDaddy);
+  R_Servo.writeMicroseconds(ServoHigh - subtractValue);
+  L_Servo.writeMicroseconds(ServoLow + subtractValue);
   delay(delayTime);
 }
 
