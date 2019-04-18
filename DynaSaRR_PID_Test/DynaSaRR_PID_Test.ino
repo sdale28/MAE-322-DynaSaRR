@@ -1,7 +1,4 @@
 #include <Servo.h>
-#include <PID_v1.h>
-
-const int PIN_INPUT = 0;
 
 int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
 int R_wheel;
@@ -44,6 +41,21 @@ int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
 int L_speed;          // speed changes for left wheel
 int R_speed;          // speed changes for right wheel
 
+
+
+
+double Kp = 2;
+double Ki = 5;
+double Kd = 1;
+
+double Setpoint;
+double Input;
+double Output;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT)
+
+
+
+
 // setup() runs once then loop() runs
 void setup() {
   pinMode(Ch1Pin, INPUT); // channel 1 is right stick lateral
@@ -62,6 +74,18 @@ void setup() {
 
   L_speed = transmitterZeroFreq;
   R_speed = transmitterZeroFreq;
+
+
+
+
+
+  Input = analogRead(R_lightSensorPin) - analogRead(L_lightSensorPin);
+  Setpoint = 0;
+
+  myPID.SetMode(AUTOMATIC);
+
+
+
 
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
@@ -126,6 +150,8 @@ void updateSensors() {
   }
   distSensor /= 5;
 
+  Input = lightSensorDiff;
+
   // Serial.print("Left Sensor = ");
   // Serial.println(L_lightSensor);
   // Serial.print("Right Sensor = ");
@@ -176,8 +202,8 @@ void autonomousMode() {
 
   //Serial.println("Autonomous");
   updateSensors();
-  Serial.print("distance");
-  Serial.println(distSensor);
+  Serial.print("Output");
+  Serial.println(Output);
 
   if (distSensor < distSensorStopValue) {
     if (L_lightSensor <= lightThreshold) {

@@ -1,17 +1,17 @@
 #include <Servo.h>
-#include <PID_v1.h>
-
-const int PIN_INPUT = 0;
 
 int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
 int R_wheel;
 int L_wheel;
+int Medkit_arm;
 
 Servo L_Servo;
 Servo R_Servo;
+Servo Medkit_Servo;
 
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
+const int Medkit_ServoPin = 2;
 const int R_lightSensorPin = A7;
 const int L_lightSensorPin = A8;
 const int distSensorPin = A6;
@@ -25,8 +25,8 @@ const int Ch6Pin = 12;  // channel 6 is left knob
 const int onBoardLEDPin = 13;
 
 // Servo control must fall between 1000uS and 2000uS
-const int ServoLow = 1000;
-const int ServoHigh = 2000;
+const int ServoLow = 1000;//1000;
+const int ServoHigh = 2000;// 2000;
 
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
@@ -43,6 +43,7 @@ int distSensor;       // hold sharp sensor value
 int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
 int L_speed;          // speed changes for left wheel
 int R_speed;          // speed changes for right wheel
+int Medkit_speed;    // speed changes for Medkit arm
 
 // setup() runs once then loop() runs
 void setup() {
@@ -53,15 +54,17 @@ void setup() {
   pinMode(Ch5Pin, INPUT); // channel 5 is right knob
   pinMode(Ch6Pin, INPUT); // channel 6 is left knob
 
-  pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
-  pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
-  pinMode(distSensorPin, INPUT);
+//   pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
+//   pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
+//   pinMode(distSensorPin, INPUT);
 
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
+  Medkit_Servo.attach(Medkit_ServoPin);
 
   L_speed = transmitterZeroFreq;
   R_speed = transmitterZeroFreq;
+  Medkit_speed = transmitterZeroFreq;
 
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
@@ -76,24 +79,28 @@ void setup() {
 
 
 void driveServosRC() {
-  Serial.println("RC");
+  //Serial.println("RC");
   if (Ch2 <= transmitterZeroFreq) {
-    R_wheel = Ch1 + Ch2 - transmitterZeroFreq;
-    L_wheel = Ch1 - Ch2 + transmitterZeroFreq;
+    L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
+    R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
   }
   else {
     int Ch1_mod = map(Ch1, ServoLow, ServoHigh, ServoLow, ServoHigh); // Invert CH1 axis to keep the math similar
     int Ch2_mod = map(Ch2, ServoLow, ServoHigh, ServoHigh, ServoLow); // Slow reaction time
 
-    R_wheel = Ch1_mod + Ch2 - transmitterZeroFreq;
-    L_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
+    L_wheel = Ch1_mod + Ch2 - transmitterZeroFreq;
+    R_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
   }
+
+  int Medkit_arm = map(Ch4, ServoLow, ServoHigh, ServoLow, ServoHigh); // Invert CH1 axis to keep the math similar
 
   constrain(L_wheel, ServoLow, ServoHigh);
   constrain(R_wheel, ServoLow, ServoHigh);
+  constrain(Medkit_arm, ServoLow, ServoHigh);
 
   L_Servo.writeMicroseconds(L_wheel);
   R_Servo.writeMicroseconds(R_wheel);
+  Medkit_Servo.writeMicroseconds(Medkit_arm);
 }
 
 void printRC() {
@@ -149,12 +156,12 @@ void turnRight(int delayTime) {
 }
 
 void driveForward(int delayTime) {
-  int subtractValue = 100;
+  int subtractMeDaddy = 100;
   if (distSensor >= distSensorSlowValue) {
-    subtractValue = 300;
+    subtractMeDaddy = 300;
   }
-  R_Servo.writeMicroseconds(ServoHigh - subtractValue);
-  L_Servo.writeMicroseconds(ServoLow + subtractValue);
+  R_Servo.writeMicroseconds(ServoHigh - subtractMeDaddy);
+  L_Servo.writeMicroseconds(ServoLow + subtractMeDaddy);
   delay(delayTime);
 }
 
@@ -213,20 +220,20 @@ void autonomousMode() {
 void loop() {
   
   //Serial.println("Loop");
-  Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+//   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
-  if (Ch5 <= autonomousActivationFrequency) {
-    autonomousMode();
-  }
-  else {
+//   if (Ch5 <= autonomousActivationFrequency) {
+//     autonomousMode();
+//   }
+//   else {
     Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
     Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
     Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
     Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-    //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+    Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
     Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
-  }
+//   }
 
   /*
   Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
