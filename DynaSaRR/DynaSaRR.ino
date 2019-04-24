@@ -2,7 +2,7 @@
 
 bool overTheWall = false;
 bool throughTheChute = false;
-// hi
+
 int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
 int R_wheel;
 int L_wheel;
