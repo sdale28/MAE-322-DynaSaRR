@@ -232,7 +232,7 @@ void autonomousLightSeeking() {
 }
 
 void autonomousMode() {
-  
+
   autonomousLightSeeking();
   
 }
