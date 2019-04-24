@@ -31,8 +31,8 @@ const int Ch6Pin = 12;  // channel 6 is left knob
 const int onBoardLEDPin = 13;
 
 // Servo control must fall between 1000uS and 2000uS
-const int ServoLow = 1000;//1000;
-const int ServoHigh = 2000;// 2000;
+const int ServoLow = 1000;//1000 = reverse
+const int ServoHigh = 2000;//2000 = forward
 const int MedkitServoLow = 1000; //1250;
 const int MedkitServoHigh = 2000;//1750;
 
@@ -41,8 +41,8 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance
-const int distSensorSlowValue = 2000;
+const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance; 3000 = 3ish inches
+const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
 const int lightThreshold = 200; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
@@ -80,9 +80,9 @@ void setup() {
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
     digitalWrite(onBoardLEDPin, HIGH);
-    delay(100);
+    delay(500);
     digitalWrite(onBoardLEDPin, LOW);
-    delay(100);
+    delay(500);
   }
 
   Serial.begin(9600);
@@ -118,6 +118,7 @@ void driveServosRC() {
   Medkit_Servo.writeMicroseconds(Medkit_arm);
 }
 
+//not used; just for testing
 void printRC() {
   Serial.println(" RC Control Mode ");
   Serial.print("Value Ch1 = ");
@@ -171,12 +172,12 @@ void turnRight(int delayTime) {
 }
 
 void driveForward(int delayTime) {
-  int subtractMeDaddy = 100;
+  int subtractValue = 100;
   if (distSensor >= distSensorSlowValue) {
-    subtractMeDaddy = 300;
+    subtractValue = 300;
   }
-  R_Servo.writeMicroseconds(ServoHigh - subtractMeDaddy);
-  L_Servo.writeMicroseconds(ServoLow + subtractMeDaddy);
+  R_Servo.writeMicroseconds(ServoHigh - subtractValue);
+  L_Servo.writeMicroseconds(ServoLow + subtractValue);
   delay(delayTime);
 }
 
@@ -191,7 +192,7 @@ void stopDriving(int delayTime) {
   R_Servo.writeMicroseconds(transmitterZeroFreq);
 
   delay(delayTime);
-  Serial.println("StopDriving");
+  // Serial.println("StopDriving");
 }
 
 void autonomousLightSeeking() {
