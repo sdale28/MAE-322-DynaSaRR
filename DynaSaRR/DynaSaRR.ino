@@ -41,7 +41,7 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance
+const int distSensorStopValue = 3000; // Value of prox sensor indicating stopping distance
 const int distSensorSlowValue = 2000;
 const int lightThreshold = 200; // sensor value for detecting target light (vs. noise/reflection)
 
