@@ -41,7 +41,7 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 3000; // Value of sharp sensor indicating stopping distance; 3000 = 3ish inches
+const int distSensorStopValue = 3000; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
 const int lightThreshold = 200; // sensor value for detecting target light (vs. noise/reflection)
 
@@ -229,6 +229,11 @@ void autonomousLightSeeking() {
     stopDriving(100);
     delay(100);
   }
+  
+}
+
+void chuteTraverse() {
+
   
 }
 
