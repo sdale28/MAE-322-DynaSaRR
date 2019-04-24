@@ -30,8 +30,8 @@ const int onBoardLEDPin = 13;
 // Servo control must fall between 1000uS and 2000uS
 const int ServoLow = 1000;//1000;
 const int ServoHigh = 2000;// 2000;
-const int MedkitServoLow = 1250;
-const int MedkitServoHigh = 1750;
+const int MedkitServoLow = 1000; //1250;
+const int MedkitServoHigh = 2000;//1750;
 
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
@@ -100,19 +100,19 @@ void driveServosRC() {
     R_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
   }
 
-  //int Medkit_arm = map(Ch3, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh); 
+  int Medkit_arm = map(Ch3, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh); 
   int Lifting_arm = map(Ch4, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh);
   
 
   constrain(L_wheel, ServoLow, ServoHigh);
   constrain(R_wheel, ServoLow, ServoHigh);
   constrain(Lifting_arm, ServoLow, ServoHigh);
-  //constrain(Medkit_arm, ServoLow, ServoHigh);
+  constrain(Medkit_arm, ServoLow, ServoHigh);
 
   L_Servo.writeMicroseconds(L_wheel);
   R_Servo.writeMicroseconds(R_wheel);
   Lifting_Servo.writeMicroseconds(Lifting_arm);
-  //Medkit_Servo.writeMicroseconds(Medkit_arm);
+  Medkit_Servo.writeMicroseconds(Medkit_arm);
 }
 
 void printRC() {
