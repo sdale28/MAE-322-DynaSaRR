@@ -1,5 +1,8 @@
 #include <Servo.h>
 
+bool overTheWall = false;
+bool throughTheChute = false;
+
 int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
 int R_wheel;
 int L_wheel;
@@ -49,7 +52,7 @@ int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
 int L_speed;          // speed changes for left wheel
 int R_speed;          // speed changes for right wheel
 int Lifting_speed;    // speed changes for lifting arm
-int Medkit_speed;    // speed changes for Medkit arm
+int Medkit_speed;     // speed changes for Medkit arm
 
 // setup() runs once then loop() runs
 void setup() {
@@ -192,7 +195,7 @@ void stopDriving(int delayTime) {
 }
 
 void autonomousLightSeeking() {
-  //Serial.println("Autonomous");
+  //Serial.println("Autonomous light seeking");
   updateSensors();
   Serial.print("distance");
   Serial.println(distSensor);
@@ -229,40 +232,8 @@ void autonomousLightSeeking() {
 }
 
 void autonomousMode() {
-
-  //Serial.println("Autonomous");
-  updateSensors();
-  Serial.print("distance");
-  Serial.println(distSensor);
-
-  if (distSensor < distSensorStopValue) {
-    if (L_lightSensor <= lightThreshold) {
-      if (lightSensorDiff > 70) {
-        if (L_lightSensor > R_lightSensor) {
-          R_speed += 5;
-          constrain(R_speed, ServoLow, 1480);
-          turnLeft(10);
-        }
-        else {
-          L_speed -= 5;
-          constrain(L_speed, 1540, ServoHigh);
-          turnRight(10);
-        }
-      }
-      else {
-        driveForward(5);
-      }
-    } 
-    else {
-      R_speed = 1500;
-      turnLeft(5);
-      updateSensors();
-    }
-  }
-  else {
-    stopDriving(100);
-    delay(100);
-  }
+  
+  autonomousLightSeeking();
   
 }
 
