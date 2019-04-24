@@ -231,6 +231,11 @@ void autonomousLightSeeking() {
   
 }
 
+void chuteTraverse() {
+
+  
+}
+
 void autonomousMode() {
 
   autonomousLightSeeking();
