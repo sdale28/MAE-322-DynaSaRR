@@ -63,9 +63,9 @@ void setup() {
   pinMode(Ch5Pin, INPUT); // channel 5 is right knob
   pinMode(Ch6Pin, INPUT); // channel 6 is left knob
 
-//   pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
-//   pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
-//   pinMode(distSensorPin, INPUT);
+  pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
+  pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
+  pinMode(distSensorPin, INPUT);
 
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
