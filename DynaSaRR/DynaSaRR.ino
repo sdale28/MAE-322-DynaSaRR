@@ -30,11 +30,11 @@ const int Ch5Pin = 11;  // channel 5 is right knob
 const int Ch6Pin = 12;  // channel 6 is left knob
 const int onBoardLEDPin = 13;
 
-// Servo control must fall between 1000uS and 2000uS
-const int ServoLow = 1000;//1000 = reverse
-const int ServoHigh = 2000;//2000 = forward
-const int MedkitServoLow = 1000; //1250;
-const int MedkitServoHigh = 2000;//1750;
+// Servo control must fall between 1000uS (full reverse) and 2000uS (full forward)
+const int ServoLow = 1000;
+const int ServoHigh = 2000;
+const int MedkitServoLow = 1000; // 1250;
+const int MedkitServoHigh = 2000;// 1750;
 
 const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
