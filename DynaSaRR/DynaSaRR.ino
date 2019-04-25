@@ -239,7 +239,7 @@ void chuteTraverse() {
   
 }
 
-void placeMedkit {
+void placeMedkit() {
 
 }
 
