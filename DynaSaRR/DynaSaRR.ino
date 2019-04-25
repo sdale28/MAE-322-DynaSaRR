@@ -239,9 +239,13 @@ void chuteTraverse() {
   
 }
 
-void autonomousMode() {
+void placeMedkit {
 
-  autonomousLightSeeking();
+}
+
+void autonomousMode() {
+  placeMedkit();
+  //autonomousLightSeeking();
   
 }
 
