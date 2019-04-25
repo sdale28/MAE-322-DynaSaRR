@@ -136,6 +136,15 @@ void printRC() {
   delay(1000);
 }
 
+void printSensors() {
+  Serial.print("Left Sensor = ");
+  Serial.println(L_lightSensor);
+  Serial.print("Right Sensor = ");
+  Serial.println(R_lightSensor);
+  Serial.print("Distance Sensor = ");
+  Serial.println(distSensor);
+}
+
 void updateSensors() {
   L_lightSensor = analogRead(L_lightSensorPin);
   R_lightSensor = analogRead(R_lightSensorPin);
@@ -145,16 +154,9 @@ void updateSensors() {
   distSensor = analogRead(distSensorPin);
 
   for (int i = 0; i < 4; i++) {
-    distSensor += distSensor + analogRead(distSensorPin);
+    distSensor += analogRead(distSensorPin);
   }
   distSensor /= 5;
-
-  // Serial.print("Left Sensor = ");
-  // Serial.println(L_lightSensor);
-  // Serial.print("Right Sensor = ");
-  // Serial.println(R_lightSensor);
-  // Serial.print("Distance Sensor = ");
-  // Serial.println(distSensor);
   
   delay(100);
 }
@@ -244,14 +246,12 @@ void autonomousMode() {
 }
 
 void loop() {
+  Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
-//Serial.println("Loop");
-//   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-
-//   if (Ch5 <= autonomousActivationFrequency) {
-//     autonomousMode();
-//   }
-//   else {
+  if (Ch5 <= autonomousActivationFrequency) {
+    autonomousMode();
+  }
+  else {
     Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
     Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
     Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
@@ -259,15 +259,5 @@ void loop() {
     Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
     Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
-//   }
-
-  /*
-  Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
-    Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-    Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
-    Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-    Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-    Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
-  printRC();
-  */
+  }
 }
