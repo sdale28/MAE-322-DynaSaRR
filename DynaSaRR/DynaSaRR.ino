@@ -21,7 +21,7 @@ const int Lifting_ServoPin = 2;
 const int Medkit_ServoPin = 3;
 const int R_lightSensorPin = A7;
 const int L_lightSensorPin = A8;
-const int distSensorPin = A6;
+const int distSensorPin = A9;
 
 const int Ch1Pin = 7;   // channel 1 is right stick lateral
 const int Ch2Pin = 8;   // channel 2 is right stick vertical
@@ -42,9 +42,9 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 3000; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
+const int distSensorStopValue = 300; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
-const int lightThreshold = 500; // sensor value for detecting target light (vs. noise/reflection)
+const int lightThreshold = 650; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -182,8 +182,8 @@ void driveForward(int runTime) {
   // R_Servo.writeMicroseconds(ServoHigh - subtractValue);
   // L_Servo.writeMicroseconds(ServoLow + subtractValue);
 
-  R_Servo.writeMicroseconds(1450); //ServoLow);
-  L_Servo.writeMicroseconds(1550); //ServoHigh);
+  R_Servo.writeMicroseconds(1425); //ServoLow);
+  L_Servo.writeMicroseconds(1575); //ServoHigh);
   delay(runTime);
 }
 
@@ -214,36 +214,39 @@ void autonomousLightSeeking() {
   Serial.print("distance");
   Serial.println(distSensor);
 
-  if (distSensor < distSensorStopValue) {
-    if (L_lightSensor <= lightThreshold) {
-      if (lightSensorDiff > 70) {
-        if (L_lightSensor > R_lightSensor) {
-          R_speed += 5;
-          constrain(R_speed, ServoLow, 1480);
-          turnLeft(10);
+  if(medkitPlaced == false) {
+    if (distSensor < distSensorStopValue) {
+      if (L_lightSensor <= lightThreshold) {
+        if (lightSensorDiff > 70) {
+          if (L_lightSensor > R_lightSensor) {
+            R_speed += 5;
+            constrain(R_speed, ServoLow, 1480);
+            turnLeft(2);
+          }
+          else {
+            L_speed -= 5;
+            constrain(L_speed, 1540, ServoHigh);
+            turnRight(2);
+          }
         }
         else {
-          L_speed -= 5;
-          constrain(L_speed, 1540, ServoHigh);
-          turnRight(10);
+          driveForward(2000);
         }
-      }
+      } 
       else {
-        driveForward(5);
+        R_speed = 1500;
+        turnRight(2);
+        updateSensors();
       }
-    } 
-    else {
-      R_speed = 1500;
-      turnLeft(5);
-      updateSensors();
     }
+    else {
+      stopDriving(100);
+      delay(500);
+      placeMedkit();
+    }
+    
   }
-  else {
-    stopDriving(100);
-    delay(100);
-    placeMedkit();
-  }
-  
+
 }
 
 void chuteTraverse() {
@@ -258,18 +261,20 @@ void placeMedkit() {
   moveMedkitArm(250, 1300);
   delay(100);
   moveMedkitArm(250, 1450);
-  delay(100);
+  delay(250);
 
   driveBackward(100);
 
   delay(1500);
 
-  moveMedkitArm(250, 1700);
-  delay(100);
-  moveMedkitArm(100, 1550);
-  delay(100);
-  // moveMedkitArm(100, 1450);
-  // delay(100);
+   moveMedkitArm(250, 1700);
+   delay(100);
+   moveMedkitArm(100, 1550);
+   delay(100);
+   //moveMedkitArm(100, 1450);
+   //delay(100);
+
+   stopDriving(100);
 
   medkitPlaced = true;
 }
@@ -290,6 +295,7 @@ void loop() {
   if (Ch5 <= autonomousActivationFrequency) {
     //medkitPlaced = false;
     autonomousMode();
+    //placeMedkit();
   }
   else {
     Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
