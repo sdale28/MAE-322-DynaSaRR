@@ -34,17 +34,18 @@ const int onBoardLEDPin = 13;
 // Servo control must fall between 1000uS (full reverse) and 2000uS (full forward)
 const int ServoLow = 1000;
 const int ServoHigh = 2000;
+const int ServoZero = 1500;
+const int ServoHalfRange = 500;
 const int MedkitServoLow = 1000; // 1250;
 const int MedkitServoHigh = 2000;// 1750;
 
-const int transmitterZeroFreq = 1500; // fequency that indicates 0 position (high+low)/2
 const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 300; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
+const int distSensorStopValue = 500; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
-const int lightThreshold = 650; // sensor value for detecting target light (vs. noise/reflection)
+const int lightThreshold = 600; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -73,17 +74,17 @@ void setup() {
   Lifting_Servo.attach(Lifting_ServoPin);
   Medkit_Servo.attach(Medkit_ServoPin);
 
-  L_speed = transmitterZeroFreq;
-  R_speed = transmitterZeroFreq;
-  Lifting_speed = transmitterZeroFreq;
-  Medkit_speed = transmitterZeroFreq;
+  L_speed = ServoZero;
+  R_speed = ServoZero;
+  Lifting_speed = ServoZero;
+  Medkit_speed = ServoZero;
 
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
     digitalWrite(onBoardLEDPin, HIGH);
-    delay(500);
+    delay(100);
     digitalWrite(onBoardLEDPin, LOW);
-    delay(500);
+    delay(100);
   }
 
   Serial.begin(9600);
@@ -92,16 +93,16 @@ void setup() {
 
 void driveServosRC() {
   //Serial.println("RC");
-  if (Ch2 <= transmitterZeroFreq) {
-    L_wheel = Ch1 + Ch2 - transmitterZeroFreq;
-    R_wheel = Ch1 - Ch2 + transmitterZeroFreq;
+  if (Ch2 <= ServoZero) {
+    L_wheel = Ch1 + Ch2 - ServoZero;
+    R_wheel = Ch1 - Ch2 + ServoZero;
   }
   else {
     int Ch1_mod = map(Ch1, ServoLow, ServoHigh, ServoLow, ServoHigh); // Invert CH1 axis to keep the math similar
     int Ch2_mod = map(Ch2, ServoLow, ServoHigh, ServoHigh, ServoLow); // Slow reaction time
 
-    L_wheel = Ch1_mod + Ch2 - transmitterZeroFreq;
-    R_wheel = Ch2_mod - Ch2 + transmitterZeroFreq;
+    L_wheel = Ch1_mod + Ch2 - ServoZero;
+    R_wheel = Ch2_mod - Ch2 + ServoZero;
   }
 
   int Medkit_arm = map(Ch3, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh); 
@@ -160,21 +161,31 @@ void updateSensors() {
   distSensor /= 5;
   
   delay(100);
+
+  //Serial.println(distSensor);
 }
 
-void turnLeft(int runTime) {
-  R_Servo.writeMicroseconds(1400);//R_speed);
-  L_Servo.writeMicroseconds(1400);//1620);
+void turnLeft(int runTime, double percent) {
+  int r = ServoZero - ServoHalfRange*percent;
+  int l = ServoZero - ServoHalfRange*percent;
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+  R_Servo.writeMicroseconds(r); //R_speed);
+  L_Servo.writeMicroseconds(l);//1620);
   delay(runTime);
 }
 
-void turnRight(int runTime) {
-  R_Servo.writeMicroseconds(1600);//1450);
-  L_Servo.writeMicroseconds(1600);//L_speed);
+void turnRight(int runTime, double percent) {
+  int r = ServoZero + ServoHalfRange*percent;
+  int l = ServoZero + ServoHalfRange*percent;
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+  R_Servo.writeMicroseconds(r); //1450);
+  L_Servo.writeMicroseconds(l);//L_speed);
   delay(runTime);
 }
 
-void driveForward(int runTime) {
+void driveForward(int runTime, double percent) {
   // int subtractValue = 100;
   // if (distSensor >= distSensorSlowValue) {
   //   subtractValue = 300;
@@ -182,20 +193,28 @@ void driveForward(int runTime) {
   // R_Servo.writeMicroseconds(ServoHigh - subtractValue);
   // L_Servo.writeMicroseconds(ServoLow + subtractValue);
 
-  R_Servo.writeMicroseconds(1425); //ServoLow);
-  L_Servo.writeMicroseconds(1575); //ServoHigh);
+  int r = ServoZero - ServoHalfRange*percent;
+  int l = ServoZero + ServoHalfRange*percent;
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+  R_Servo.writeMicroseconds(r); //1425;
+  L_Servo.writeMicroseconds(l);//1575;
   delay(runTime);
 }
 
-void driveBackward(int runTime) {
-  R_Servo.writeMicroseconds(1550); //ServoLow);
-  L_Servo.writeMicroseconds(1450); //ServoHigh);
+void driveBackward(int runTime, double percent) {
+  int r = ServoZero + ServoHalfRange*percent;
+  int l = ServoZero - ServoHalfRange*percent;
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+  R_Servo.writeMicroseconds(r); //1550);
+  L_Servo.writeMicroseconds(l);//1450);
   delay(runTime);
 }
 
 void stopDriving(int runTime) {
-  L_Servo.writeMicroseconds(transmitterZeroFreq);
-  R_Servo.writeMicroseconds(transmitterZeroFreq);
+  L_Servo.writeMicroseconds(ServoZero);
+  R_Servo.writeMicroseconds(ServoZero);
 
   delay(runTime);
   // Serial.println("StopDriving");
@@ -211,31 +230,27 @@ void moveMedkitArm(int runTime, int speed) {
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
   updateSensors();
-  Serial.print("distance");
-  Serial.println(distSensor);
+  //Serial.print("distance");
+  //Serial.println(distSensor);
 
   if(medkitPlaced == false) {
     if (distSensor < distSensorStopValue) {
       if (L_lightSensor <= lightThreshold) {
         if (lightSensorDiff > 70) {
           if (L_lightSensor > R_lightSensor) {
-            R_speed += 5;
-            constrain(R_speed, ServoLow, 1480);
-            turnLeft(2);
+            turnLeft(5, 0.2);
           }
           else {
-            L_speed -= 5;
-            constrain(L_speed, 1540, ServoHigh);
-            turnRight(2);
+            turnRight(5, 0.2);
           }
         }
         else {
-          driveForward(2000);
+          driveForward(200, 0.15); // works on 2000 but takes too long to recognize distance
         }
       } 
       else {
         R_speed = 1500;
-        turnRight(2);
+        turnRight(5, 0.1);
         updateSensors();
       }
     }
@@ -255,22 +270,24 @@ void chuteTraverse() {
 }
 
 void placeMedkit() {
-  // moveMedkitArm(250, 1300);
-  // moveMedkitArm(250, 1400);
-  // moveMedkitArm(250, 1440);
+  moveMedkitArm(500, 1475); // tighten chain
+  delay(100);
   moveMedkitArm(250, 1300);
   delay(100);
   moveMedkitArm(250, 1450);
   delay(250);
+  
+  moveMedkitArm(500, ServoZero);
 
-  driveBackward(100);
+  driveBackward(100, 0.1);
 
-  delay(1500);
+  delay(500);
 
-   moveMedkitArm(250, 1700);
+   moveMedkitArm(200, 1650);
    delay(100);
    moveMedkitArm(100, 1550);
    delay(100);
+   moveMedkitArm(100, ServoZero);
    //moveMedkitArm(100, 1450);
    //delay(100);
 
@@ -285,15 +302,23 @@ void autonomousMode() {
   //   placeMedkit();
   // }
   //autonomousLightSeeking();
-  Serial.println("Autonomous");
+  //Serial.println("Autonomous");
 }
 
 void loop() {
-  Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+  Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout); // ch 5 toggles autonomous mode
+  Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout); // ch 6 fully clockwise resets medkitPlaced
 
+  updateSensors();
+
+  if (Ch6 <= autonomousActivationFrequency) {
+    medkitPlaced = false;
+  }
   
   if (Ch5 <= autonomousActivationFrequency) {
     //medkitPlaced = false;
+    //autonomous = true;
+    
     autonomousMode();
     //placeMedkit();
   }
@@ -302,8 +327,8 @@ void loop() {
     Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
     Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
     Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-    Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-    Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+    //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+    //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
     driveServosRC();
   }
 }
