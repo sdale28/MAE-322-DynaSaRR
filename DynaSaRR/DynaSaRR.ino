@@ -161,40 +161,46 @@ void updateSensors() {
   delay(100);
 }
 
-void turnLeft(int delayTime) {
+void turnLeft(int runTime) {
   R_Servo.writeMicroseconds(R_speed);
   L_Servo.writeMicroseconds(1620);
-  delay(delayTime);
+  delay(runTime);
 }
 
-void turnRight(int delayTime) {
+void turnRight(int runTime) {
   R_Servo.writeMicroseconds(1450);
   L_Servo.writeMicroseconds(L_speed);
-  delay(delayTime);
+  delay(runTime);
 }
 
-void driveForward(int delayTime) {
+void driveForward(int runTime) {
   int subtractValue = 100;
   if (distSensor >= distSensorSlowValue) {
     subtractValue = 300;
   }
   R_Servo.writeMicroseconds(ServoHigh - subtractValue);
   L_Servo.writeMicroseconds(ServoLow + subtractValue);
-  delay(delayTime);
+  delay(runTime);
 }
 
-void driveBackward(int delayTime) {
+void driveBackward(int runTime) {
   R_Servo.writeMicroseconds(1450); //ServoLow);
   L_Servo.writeMicroseconds(1550); //ServoHigh);
-  delay(delayTime);
+  delay(runTime);
 }
 
-void stopDriving(int delayTime) {
+void stopDriving(int runTime) {
   L_Servo.writeMicroseconds(transmitterZeroFreq);
   R_Servo.writeMicroseconds(transmitterZeroFreq);
 
-  delay(delayTime);
+  delay(runTime);
   // Serial.println("StopDriving");
+}
+
+void moveMedkitArm(int runTime, int speed) {
+  Medkit_servo.writeMicroseconds(speed);
+
+  delay(runTime);
 }
 
 void autonomousLightSeeking() {
@@ -240,7 +246,7 @@ void chuteTraverse() {
 }
 
 void placeMedkit() {
-
+  moveMedkitArm(250, 1250);
 }
 
 void autonomousMode() {
