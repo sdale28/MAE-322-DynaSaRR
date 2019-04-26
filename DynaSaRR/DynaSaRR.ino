@@ -2,6 +2,7 @@
 
 bool overTheWall = false;
 bool throughTheChute = false;
+bool medkitPlaced = false;
 
 int Ch1, Ch2, Ch3, Ch4, Ch5, Ch6; // hold receiver signals
 int R_wheel;
@@ -43,7 +44,7 @@ const int autonomousActivationFrequency = 1800; // knob turned completely clockw
 
 const int distSensorStopValue = 3000; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
-const int lightThreshold = 200; // sensor value for detecting target light (vs. noise/reflection)
+const int lightThreshold = 500; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -162,30 +163,33 @@ void updateSensors() {
 }
 
 void turnLeft(int runTime) {
-  R_Servo.writeMicroseconds(R_speed);
-  L_Servo.writeMicroseconds(1620);
+  R_Servo.writeMicroseconds(1400);//R_speed);
+  L_Servo.writeMicroseconds(1400);//1620);
   delay(runTime);
 }
 
 void turnRight(int runTime) {
-  R_Servo.writeMicroseconds(1450);
-  L_Servo.writeMicroseconds(L_speed);
+  R_Servo.writeMicroseconds(1600);//1450);
+  L_Servo.writeMicroseconds(1600);//L_speed);
   delay(runTime);
 }
 
 void driveForward(int runTime) {
-  int subtractValue = 100;
-  if (distSensor >= distSensorSlowValue) {
-    subtractValue = 300;
-  }
-  R_Servo.writeMicroseconds(ServoHigh - subtractValue);
-  L_Servo.writeMicroseconds(ServoLow + subtractValue);
+  // int subtractValue = 100;
+  // if (distSensor >= distSensorSlowValue) {
+  //   subtractValue = 300;
+  // }
+  // R_Servo.writeMicroseconds(ServoHigh - subtractValue);
+  // L_Servo.writeMicroseconds(ServoLow + subtractValue);
+
+  R_Servo.writeMicroseconds(1450); //ServoLow);
+  L_Servo.writeMicroseconds(1550); //ServoHigh);
   delay(runTime);
 }
 
 void driveBackward(int runTime) {
-  R_Servo.writeMicroseconds(1450); //ServoLow);
-  L_Servo.writeMicroseconds(1550); //ServoHigh);
+  R_Servo.writeMicroseconds(1550); //ServoLow);
+  L_Servo.writeMicroseconds(1450); //ServoHigh);
   delay(runTime);
 }
 
@@ -198,8 +202,9 @@ void stopDriving(int runTime) {
 }
 
 void moveMedkitArm(int runTime, int speed) {
-  Medkit_servo.writeMicroseconds(speed);
+  Medkit_Servo.writeMicroseconds(speed);
 
+  Serial.println("Medkit");
   delay(runTime);
 }
 
@@ -236,6 +241,7 @@ void autonomousLightSeeking() {
   else {
     stopDriving(100);
     delay(100);
+    placeMedkit();
   }
   
 }
@@ -246,19 +252,43 @@ void chuteTraverse() {
 }
 
 void placeMedkit() {
-  moveMedkitArm(250, 1250);
+  // moveMedkitArm(250, 1300);
+  // moveMedkitArm(250, 1400);
+  // moveMedkitArm(250, 1440);
+  moveMedkitArm(250, 1300);
+  delay(100);
+  moveMedkitArm(250, 1450);
+  delay(100);
+
+  driveBackward(100);
+
+  delay(1500);
+
+  moveMedkitArm(250, 1700);
+  delay(100);
+  moveMedkitArm(100, 1550);
+  delay(100);
+  // moveMedkitArm(100, 1450);
+  // delay(100);
+
+  medkitPlaced = true;
 }
 
 void autonomousMode() {
-  placeMedkit();
+  autonomousLightSeeking();
+  // if (medkitPlaced == false) {
+  //   placeMedkit();
+  // }
   //autonomousLightSeeking();
-  
+  Serial.println("Autonomous");
 }
 
 void loop() {
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
 
+  
   if (Ch5 <= autonomousActivationFrequency) {
+    //medkitPlaced = false;
     autonomousMode();
   }
   else {
