@@ -1,3 +1,4 @@
+#include <PID_v1.h>
 #include <Servo.h>
 
 bool overTheWall = false;
@@ -22,6 +23,8 @@ const int Medkit_ServoPin = 3;
 const int R_lightSensorPin = A7;
 const int L_lightSensorPin = A8;
 const int distSensorPin = A9;
+const int distRPin = A6;
+const int distLPin = A5;
 
 const int Ch1Pin = 7;   // channel 1 is right stick lateral
 const int Ch2Pin = 8;   // channel 2 is right stick vertical
@@ -43,18 +46,28 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 500; // Value of prox sensor indicating stopping distance; 3000 = 3ish inches
+const int distSensorStopValue = 500; // Value of prox sensor indicating stopping distance; 4ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
 const int lightThreshold = 600; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
-int distSensor;       // hold sharp sensor value
+int distSensor;       // hold front sharp sensor value
+int distR;            // hold right distance sensor value
+int distL;            // hold left distance sensor value
+double distDiff;      // difference between dist sensors. if positive, closer to right of chute
 int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
 int L_speed;          // speed changes for left wheel
 int R_speed;          // speed changes for right wheel
 int Lifting_speed;    // speed changes for lifting arm
 int Medkit_speed;     // speed changes for Medkit arm
+
+////PID setup
+//double Kp = 2;
+//double Ki = 5;
+//double Kd = 1;
+//double distOut;
+//PID chutePID(&distDiff, &distOut, 0, Kp, Ki, Kd, DIRECT);
 
 // setup() runs once then loop() runs
 void setup() {
@@ -68,6 +81,8 @@ void setup() {
   pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
   pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
   pinMode(distSensorPin, INPUT);
+  pinMode(distRPin, INPUT);
+  pinMode(distLPin, INPUT);
 
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
@@ -78,6 +93,10 @@ void setup() {
   R_speed = ServoZero;
   Lifting_speed = ServoZero;
   Medkit_speed = ServoZero;
+
+  //chutePID.SetMode(AUTOMATIC);
+  //chutePID.SetOutputLimits(-1, 1); // 1 if closer to right, -1 if closer to left ?
+
 
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
@@ -157,8 +176,14 @@ void updateSensors() {
 
   for (int i = 0; i < 4; i++) {
     distSensor += analogRead(distSensorPin);
+    distR += analogRead(distRPin);
+    distL += analogRead(distLPin);
   }
   distSensor /= 5;
+  distR /= 5;
+  distL /= 5;
+
+  distDiff = distR - distL;
   
   delay(100);
 
@@ -229,7 +254,6 @@ void moveMedkitArm(int runTime, int speed) {
 
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
-  updateSensors();
   //Serial.print("distance");
   //Serial.println(distSensor);
 
@@ -265,8 +289,30 @@ void autonomousLightSeeking() {
 }
 
 void chuteTraverse() {
-
-  
+  //chutePID.Compute();
+  //Serial.println(distR);
+  //Serial.println(distL);
+  //Serial.println(distDiff);
+  if(distR > 150) {
+    if(distL > 150) {
+      if(distDiff > 75) { // around 2in difference
+        turnLeft(5, 0.15);
+        //Serial.println("turning left");
+      }
+      else if(distDiff < -75) {
+        turnRight(5, 0.15);
+        //Serial.println("turning right");
+      }
+      else {
+        //Serial.println("driving forward");
+        driveForward(100, 0.15);
+      }
+    }
+    else {
+      //Serial.println("out of chute");
+      stopDriving(100);
+    }
+  }
 }
 
 void placeMedkit() {
@@ -297,11 +343,9 @@ void placeMedkit() {
 }
 
 void autonomousMode() {
-  autonomousLightSeeking();
-  // if (medkitPlaced == false) {
-  //   placeMedkit();
-  // }
+  updateSensors();
   //autonomousLightSeeking();
+  chuteTraverse();
   //Serial.println("Autonomous");
 }
 
