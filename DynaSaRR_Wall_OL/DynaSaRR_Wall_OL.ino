@@ -120,6 +120,15 @@ void printRC() {
   delay(1000);
 }
 
+void printSensors() {
+  Serial.print("Left Sensor = ");
+  Serial.println(L_lightSensor);
+  Serial.print("Right Sensor = ");
+  Serial.println(R_lightSensor);
+  Serial.print("Distance Sensor = ");
+  Serial.println(distSensor);
+}
+
 void updateSensors() {
   L_lightSensor = analogRead(L_lightSensorPin);
   R_lightSensor = analogRead(R_lightSensorPin);
@@ -132,13 +141,6 @@ void updateSensors() {
     distSensor += distSensor + analogRead(distSensorPin);
   }
   distSensor /= 5;
-
-  // Serial.print("Left Sensor = ");
-  // Serial.println(L_lightSensor);
-  // Serial.print("Right Sensor = ");
-  // Serial.println(R_lightSensor);
-  // Serial.print("Distance Sensor = ");
-  // Serial.println(distSensor);
   
   delay(100);
 }
