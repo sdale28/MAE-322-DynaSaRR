@@ -16,15 +16,18 @@ Servo R_Servo;
 Servo Lifting_Servo;
 Servo Medkit_Servo;
 
+const int distSensorPin = A9;
+const int L_lightSensorPin = A8;
+const int R_lightSensorPin = A7;
+const int distRPin = A6;
+const int distLPin = A5;
+const int front_limitSwitchPin = A4;
+const int back_limitSwitchPin = A3;
+
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
 const int Lifting_ServoPin = 2;
 const int Medkit_ServoPin = 3;
-const int R_lightSensorPin = A7;
-const int L_lightSensorPin = A8;
-const int distSensorPin = A9;
-const int distRPin = A6;
-const int distLPin = A5;
 
 const int Ch1Pin = 7;   // channel 1 is right stick lateral
 const int Ch2Pin = 8;   // channel 2 is right stick vertical
@@ -62,6 +65,9 @@ int R_speed;          // speed changes for right wheel
 int Lifting_speed;    // speed changes for lifting arm
 int Medkit_speed;     // speed changes for Medkit arm
 
+bool front_limitSwitch;
+bool back_limitSwitch;
+
 ////PID setup
 //double Kp = 2;
 //double Ki = 5;
@@ -83,6 +89,9 @@ void setup() {
   pinMode(distSensorPin, INPUT);
   pinMode(distRPin, INPUT);
   pinMode(distLPin, INPUT);
+
+  pinMode(front_limitSwitchPin, INPUT);
+  pinMode(back_limitSwitchPin, INPUT);
 
   R_Servo.attach(R_ServoPin);
   L_Servo.attach(L_ServoPin);
@@ -132,6 +141,13 @@ void driveServosRC() {
   constrain(R_wheel, ServoLow, ServoHigh);
   constrain(Lifting_arm, ServoLow, ServoHigh);
   constrain(Medkit_arm, ServoLow, ServoHigh);
+
+  if (!front_limitSwitch && (Medkit_arm < ServoZero)) {
+    Medkit_arm = ServoZero;
+  } 
+  else if (!back_limitSwitch && (Medkit_arm > ServoZero)) {
+    Medkit_arm = ServoZero;
+  }
 
   L_Servo.writeMicroseconds(L_wheel);
   R_Servo.writeMicroseconds(R_wheel);
@@ -184,6 +200,9 @@ void updateSensors() {
   distL /= 5;
 
   distDiff = distR - distL;
+
+  front_limitSwitch = digitalRead(front_limitSwitchPin);
+  back_limitSwitch = digitalRead(back_limitSwitchPin);
   
   delay(100);
 
@@ -193,20 +212,26 @@ void updateSensors() {
 void turnLeft(int runTime, double percent) {
   int r = ServoZero - ServoHalfRange*percent;
   int l = ServoZero - ServoHalfRange*percent;
+
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
+
   R_Servo.writeMicroseconds(r); //R_speed);
   L_Servo.writeMicroseconds(l);//1620);
+
   delay(runTime);
 }
 
 void turnRight(int runTime, double percent) {
   int r = ServoZero + ServoHalfRange*percent;
   int l = ServoZero + ServoHalfRange*percent;
+
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
+
   R_Servo.writeMicroseconds(r); //1450);
   L_Servo.writeMicroseconds(l);//L_speed);
+
   delay(runTime);
 }
 
@@ -220,20 +245,26 @@ void driveForward(int runTime, double percent) {
 
   int r = ServoZero - ServoHalfRange*percent;
   int l = ServoZero + ServoHalfRange*percent;
+
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
+
   R_Servo.writeMicroseconds(r); //1425;
   L_Servo.writeMicroseconds(l);//1575;
+
   delay(runTime);
 }
 
 void driveBackward(int runTime, double percent) {
   int r = ServoZero + ServoHalfRange*percent;
   int l = ServoZero - ServoHalfRange*percent;
+
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
+
   R_Servo.writeMicroseconds(r); //1550);
   L_Servo.writeMicroseconds(l);//1450);
+
   delay(runTime);
 }
 
@@ -245,10 +276,38 @@ void stopDriving(int runTime) {
   // Serial.println("StopDriving");
 }
 
-void moveMedkitArm(int runTime, int speed) {
-  Medkit_Servo.writeMicroseconds(speed);
+void medkitArmForward(int runTime, double percent) {
+  // if (!front_limitSwitch) {
+    int medkitSpeed = ServoZero - ServoHalfRange * percent;
 
-  Serial.println("Medkit");
+    Medkit_Servo.writeMicroseconds(medkitSpeed);
+
+    //Serial.println("Medkit Forward");
+    delay(runTime);
+  // }
+  // else {
+  //   medkitArmStop(runTime);
+  // }
+}
+
+void medkitArmBackward(int runTime, double percent) {
+  // if (!front_limitSwitch) {
+    int medkitSpeed = ServoZero - ServoHalfRange * percent;
+
+    Medkit_Servo.writeMicroseconds(medkitSpeed);
+
+    //Serial.println("Medkit Forward");
+    delay(runTime);
+  // }
+  // else {
+  //   medkitArmStop(runTime);
+  // }
+}
+
+void medkitArmStop(int runTime) {
+  Medkit_Servo.writeMicroseconds(ServoZero);
+
+  //Serial.println("Medkit Stop");
   delay(runTime);
 }
 
@@ -279,7 +338,7 @@ void autonomousLightSeeking() {
       }
     }
     else {
-      stopDriving(100);
+      topDriving(100);
       delay(500);
       placeMedkit();
     }
@@ -316,28 +375,29 @@ void chuteTraverse() {
 }
 
 void placeMedkit() {
-  moveMedkitArm(500, 1475); // tighten chain
+  medkitArmForward(500, 0.05); // tighten chain
   delay(100);
-  moveMedkitArm(250, 1300);
+  medkitArmForward(250, 0.40);
   delay(100);
-  moveMedkitArm(250, 1450);
+  medkitArmForward(250, 0.10);
   delay(250);
   
-  moveMedkitArm(500, ServoZero);
+  medkitArmStop(500);
 
   driveBackward(100, 0.1);
 
   delay(500);
 
-   moveMedkitArm(200, 1650);
-   delay(100);
-   moveMedkitArm(100, 1550);
-   delay(100);
-   moveMedkitArm(100, ServoZero);
-   //moveMedkitArm(100, 1450);
-   //delay(100);
+  medkitArmBackward(200, 0.3);
+  delay(100);
+  medkitArmBackward(100, 0.10);
+  delay(100);
+  
+  medkitArmStop(100);
+  //moveMedkitArm(100, 1450);
+  //delay(100);
 
-   stopDriving(100);
+  stopDriving(100);
 
   medkitPlaced = true;
 }
