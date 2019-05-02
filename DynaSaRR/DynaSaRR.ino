@@ -1,4 +1,4 @@
-#include <PID_v1.h>
+//#include <PID_v1.h>
 #include <Servo.h>
 
 bool overTheWall = false;
@@ -319,14 +319,15 @@ void autonomousLightSeeking() {
 
   if(medkitPlaced == false) {
     if (distSensor < distSensorStopValue) {
-      if (R_lightSensor <= lightThreshold) {
-        if (lightSensorDiff > 50) {
+      if (L_lightSensor <= lightThreshold) {
+        stopDriving(100);
+        if (lightSensorDiff > 75) {
           if (L_lightSensor < R_lightSensor) {
-            delay(100);
+            delay(50);
             turnLeft(10, 0.2); // 0.1 is too low--doesn't drive
           }
           else {
-            delay(100);
+            delay(50);
             turnRight(10, 0.2);
           }
         }
