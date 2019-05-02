@@ -49,7 +49,7 @@ const int transmitterTimeout = 21000;
 
 const int autonomousActivationFrequency = 1800; // knob turned completely clockwise
 
-const int distSensorStopValue = 500; // Value of prox sensor indicating stopping distance; 4ish inches
+const int distSensorStopValue = 450; // Value of prox sensor indicating stopping distance; 4ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
 const int lightThreshold = 600; // sensor value for detecting target light (vs. noise/reflection)
 
@@ -121,6 +121,7 @@ void setup() {
 
 void driveServosRC() {
   //Serial.println("RC");
+  
   if (Ch2 <= ServoZero) {
     L_wheel = Ch1 + Ch2 - ServoZero;
     R_wheel = Ch1 - Ch2 + ServoZero;
@@ -142,12 +143,12 @@ void driveServosRC() {
   constrain(Lifting_arm, ServoLow, ServoHigh);
   constrain(Medkit_arm, ServoLow, ServoHigh);
 
-  if (!front_limitSwitch && (Medkit_arm < ServoZero)) {
-    Medkit_arm = ServoZero;
-  } 
-  else if (!back_limitSwitch && (Medkit_arm > ServoZero)) {
-    Medkit_arm = ServoZero;
-  }
+  //if (!front_limitSwitch && (Medkit_arm < ServoZero)) {
+  //  Medkit_arm = ServoZero;
+  //} 
+  //else if (!back_limitSwitch && (Medkit_arm > ServoZero)) {
+  //  Medkit_arm = ServoZero;
+  //}
 
   L_Servo.writeMicroseconds(L_wheel);
   R_Servo.writeMicroseconds(R_wheel);
@@ -291,12 +292,12 @@ void medkitArmForward(int runTime, double percent) {
 }
 
 void medkitArmBackward(int runTime, double percent) {
-  // if (!front_limitSwitch) {
-    int medkitSpeed = ServoZero - ServoHalfRange * percent;
+  // if (!back_limitSwitch) {
+    int medkitSpeed = ServoZero + ServoHalfRange * percent;
 
     Medkit_Servo.writeMicroseconds(medkitSpeed);
 
-    //Serial.println("Medkit Forward");
+    //Serial.println("Medkit Backward");
     delay(runTime);
   // }
   // else {
@@ -318,27 +319,29 @@ void autonomousLightSeeking() {
 
   if(medkitPlaced == false) {
     if (distSensor < distSensorStopValue) {
-      if (L_lightSensor <= lightThreshold) {
-        if (lightSensorDiff > 70) {
-          if (L_lightSensor > R_lightSensor) {
-            turnLeft(5, 0.2);
+      if (R_lightSensor <= lightThreshold) {
+        if (lightSensorDiff > 50) {
+          if (L_lightSensor < R_lightSensor) {
+            delay(100);
+            turnLeft(10, 0.2); // 0.1 is too low--doesn't drive
           }
           else {
-            turnRight(5, 0.2);
+            delay(100);
+            turnRight(10, 0.2);
           }
         }
         else {
-          driveForward(200, 0.15); // works on 2000 but takes too long to recognize distance
+          delay(100);
+          driveForward(200, 0.2); // works on 2000 but takes too long to recognize distance
         }
       } 
       else {
-        R_speed = 1500;
-        turnRight(5, 0.1);
+        turnRight(10, 0.2);
         updateSensors();
       }
     }
     else {
-      topDriving(100);
+      stopDriving(100);
       delay(500);
       placeMedkit();
     }
@@ -387,7 +390,9 @@ void placeMedkit() {
   driveBackward(100, 0.1);
 
   delay(500);
-
+  
+  medkitArmBackward(500, 0.05); // tighten chain
+  delay(100);
   medkitArmBackward(200, 0.3);
   delay(100);
   medkitArmBackward(100, 0.10);
@@ -404,8 +409,8 @@ void placeMedkit() {
 
 void autonomousMode() {
   updateSensors();
-  //autonomousLightSeeking();
-  chuteTraverse();
+  autonomousLightSeeking();
+  //chuteTraverse();
   //Serial.println("Autonomous");
 }
 
