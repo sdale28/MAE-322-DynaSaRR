@@ -51,7 +51,7 @@ const int autonomousActivationFrequency = 1800; // knob turned completely clockw
 
 const int distSensorStopValue = 450; // Value of prox sensor indicating stopping distance; 4ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
-const int lightThreshold = 600; // sensor value for detecting target light (vs. noise/reflection)
+const int lightThreshold = 550; // sensor value for detecting target light (vs. noise/reflection)
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -320,24 +320,32 @@ void autonomousLightSeeking() {
   if(medkitPlaced == false) {
     if (distSensor < distSensorStopValue) {
       if (L_lightSensor <= lightThreshold) {
-        stopDriving(100);
-        if (lightSensorDiff > 75) {
-          if (L_lightSensor < R_lightSensor) {
+        stopDriving(10);
+        if (lightSensorDiff > 30 ) {
+          if (L_lightSensor > R_lightSensor) {
+            delay(50); 
+            turnLeft(100, 0.2); // 0.1 is too low--doesn't drive
             delay(50);
-            turnLeft(10, 0.2); // 0.1 is too low--doesn't drive
+            driveForward(100, 0.2);
+            //Serial.println("turn left");
           }
           else {
             delay(50);
             turnRight(10, 0.2);
+            delay(50);
+            driveForward(100, 0.2);
+              //Serial.println("turn right");
           }
         }
         else {
-          delay(100);
+          delay(50);
           driveForward(200, 0.2); // works on 2000 but takes too long to recognize distance
+//            Serial.println("forward");
         }
       } 
       else {
         turnRight(10, 0.2);
+//          Serial.println("lost");
         updateSensors();
       }
     }
