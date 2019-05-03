@@ -2,6 +2,7 @@
 #include <Servo.h>
 
 bool overTheWall = false;
+bool inTheChute = false;
 bool throughTheChute = false;
 bool medkitPlaced = false;
 
@@ -212,7 +213,7 @@ void updateSensors() {
 
 void turnLeft(int runTime, double percent) {
   int r = ServoZero - ServoHalfRange*percent;
-  int l = ServoZero - ServoHalfRange*percent;
+  int l = ServoZero - ServoHalfRange*percent - 25; // constant offset to account for difference in speeds
 
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
@@ -224,7 +225,7 @@ void turnLeft(int runTime, double percent) {
 }
 
 void turnRight(int runTime, double percent) {
-  int r = ServoZero + ServoHalfRange*percent;
+  int r = ServoZero + ServoHalfRange*percent + 25;
   int l = ServoZero + ServoHalfRange*percent;
 
   constrain(r, ServoLow, ServoHigh);
@@ -323,22 +324,17 @@ void autonomousLightSeeking() {
         stopDriving(10);
         if (lightSensorDiff > 30 ) {
           if (L_lightSensor > R_lightSensor) {
-            delay(50); 
-            turnLeft(100, 0.2); // 0.1 is too low--doesn't drive
-            delay(50);
+            turnLeft(150, 0.2); // 0.1 is too low--doesn't drive
             driveForward(100, 0.2);
             //Serial.println("turn left");
           }
           else {
-            delay(50);
             turnRight(10, 0.2);
-            delay(50);
             driveForward(100, 0.2);
               //Serial.println("turn right");
           }
         }
         else {
-          delay(50);
           driveForward(200, 0.2); // works on 2000 but takes too long to recognize distance
 //            Serial.println("forward");
         }
@@ -364,25 +360,37 @@ void chuteTraverse() {
   //Serial.println(distR);
   //Serial.println(distL);
   //Serial.println(distDiff);
-  if(distR > 150) {
-    if(distL > 150) {
+  if(inTheChute == false) {
+    driveForward(100, 0.2);
+    if(distR > 175) {
+      if(distL > 175) {
+        inTheChute = true;
+      }
+    }
+  }
+   else if(distR > 175) {
+    if(distL > 175) {
       if(distDiff > 75) { // around 2in difference
-        turnLeft(5, 0.15);
+        turnLeft(25, 0.2);
         //Serial.println("turning left");
       }
       else if(distDiff < -75) {
-        turnRight(5, 0.15);
+        turnRight(25, 0.2);
         //Serial.println("turning right");
       }
       else {
         //Serial.println("driving forward");
-        driveForward(100, 0.15);
+        driveForward(25, 0.2);
       }
     }
-    else {
-      //Serial.println("out of chute");
-      stopDriving(100);
-    }
+   }
+  else {
+    //Serial.println("out of chute");
+    driveForward(300, 0.2);
+    stopDriving(100);
+    turnLeft(150, .2);
+    stopDriving(500);
+    throughTheChute = true;
   }
 }
 
@@ -418,8 +426,10 @@ void placeMedkit() {
 
 void autonomousMode() {
   updateSensors();
-  autonomousLightSeeking();
-  //chuteTraverse();
+  chuteTraverse();
+  if (throughTheChute == true) {
+    autonomousLightSeeking();
+  }
   //Serial.println("Autonomous");
 }
 
@@ -431,6 +441,8 @@ void loop() {
 
   if (Ch6 <= autonomousActivationFrequency) {
     medkitPlaced = false;
+    inTheChute = false;
+    throughTheChute = false;
   }
   
   if (Ch5 <= autonomousActivationFrequency) {
