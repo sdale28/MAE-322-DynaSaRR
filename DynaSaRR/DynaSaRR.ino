@@ -1,6 +1,9 @@
 //#include <PID_v1.h>
 #include <Servo.h>
 
+bool atWall = false;
+bool firstStep = false;
+bool secondStep = false;
 bool overTheWall = false;
 bool inTheChute = false;
 bool throughTheChute = false;
@@ -313,6 +316,28 @@ void medkitArmStop(int runTime) {
   delay(runTime);
 }
 
+void liftingArmForward(int runTime, double percent) {
+  Lifting_arm = ServoZero - ServoHalfRange*percent;
+  constrain(Lifting_arm, ServoLow, ServoHigh);
+  Lifting_Servo.writeMicroseconds(Lifting_arm);
+  delay(runTime);
+}
+
+void steps(int runTime) {
+  Lifting_arm = ServoZero - ServoHalfRange*(.75);
+  int r = ServoZero - ServoHalfRange*(.25);
+  int l = ServoZero + ServoHalfRange*(.25);
+  constrain(Lifting_arm, ServoLow, ServoHigh);
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+
+  R_Servo.writeMicroseconds(r);
+  L_Servo.writeMicroseconds(l);
+  Lifting_Servo.writeMicroseconds(Lifting_arm);
+  delay(runTime);
+  
+}
+
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
   //Serial.print("distance");
@@ -401,6 +426,24 @@ void chuteTraverse() {
   }
 }
 
+void wallTraverse() {
+  if(distSensor < 300 && !atWall) {
+    driveForward(100, 0.2);
+  }
+  else {
+    atWall = true;
+  }
+  if(atWall && !firstStep) {
+    steps(500); // first step
+    firstStep = true;
+  }
+  else if(atWall && !secondStep) {
+    steps(250);
+    secondStep = true;
+  }
+  
+}
+
 void placeMedkit() {
   medkitArmForward(500, 0.05); // tighten chain
   delay(100);
@@ -434,11 +477,12 @@ void placeMedkit() {
 void autonomousMode() {
   updateSensors();
   //chuteTraverse();
-  if (throughTheChute && !medkitPlaced) {
-    Serial.println("light");
-    autonomousLightSeeking();
-  }
+//  if (throughTheChute && !medkitPlaced) {
+//    Serial.println("light");
+//    autonomousLightSeeking();
+//  }
   //Serial.println("Autonomous");
+  wallTraverse();
 }
 
 void loop() {
@@ -451,6 +495,9 @@ void loop() {
     medkitPlaced = false;
     inTheChute = false;
     throughTheChute = true; // MAKE SURE TO CHANGE THIS BACK TO FALSE TO TEST LIGHT
+    atWall = false;
+    firstStep = false;
+    secondStep = false;
   }
   
   if (Ch5 <= autonomousActivationFrequency) {
@@ -463,7 +510,7 @@ void loop() {
   else {
     Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
     Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-    Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
+    //Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout); //disabled medkit arm
     Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
     //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
     //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
