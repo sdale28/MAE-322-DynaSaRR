@@ -338,6 +338,23 @@ void steps(int runTime) {
   
 }
 
+void overWall(int runTime) {
+  Lifting_arm = ServoZero - ServoHalfRange;
+  int r = ServoZero - ServoHalfRange;
+  int l = ServoZero + ServoHalfRange;
+  constrain(Lifting_arm, ServoLow, ServoHigh);
+  constrain(r, ServoLow, ServoHigh);
+  constrain(l, ServoLow, ServoHigh);
+
+  R_Servo.writeMicroseconds(r);
+  L_Servo.writeMicroseconds(l);
+  Lifting_Servo.writeMicroseconds(Lifting_arm);
+  medkitArmForward(250, 0.6);
+  medkitArmStop(10);
+  delay(runTime);
+  
+}
+
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
   //Serial.print("distance");
@@ -438,8 +455,17 @@ void wallTraverse() {
     firstStep = true;
   }
   else if(atWall && !secondStep) {
-    steps(250);
+    steps(350);
     secondStep = true;
+    delay(250);
+  }
+  else if(atWall && !overTheWall) {
+    medkitArmForward(200, 0.4);
+    //overWall(500);
+    overTheWall = true;
+  }
+  else if(overTheWall) {
+    stopDriving(100);
   }
   
 }
@@ -498,6 +524,7 @@ void loop() {
     atWall = false;
     firstStep = false;
     secondStep = false;
+    overTheWall = false;
   }
   
   if (Ch5 <= autonomousActivationFrequency) {
