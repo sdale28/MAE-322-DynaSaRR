@@ -330,7 +330,7 @@ void liftingArmStop(int runTime) {
 }
 
 void steps(int runTime) {
-  Lifting_arm = ServoZero - ServoHalfRange*(.65);
+  Lifting_arm = ServoZero - ServoHalfRange*(.75);
   int r = ServoZero - ServoHalfRange*(.25);
   int l = ServoZero + ServoHalfRange*(.25);
   constrain(Lifting_arm, ServoLow, ServoHigh);
@@ -348,15 +348,17 @@ void steps(int runTime) {
 void overWall(int runTime) {
 
 //  liftingArmStop(10);
-//  int r = ServoZero - ServoHalfRange*0.65;
-//  int l = ServoZero + ServoHalfRange*0.65;
+//  int r = ServoZero - ServoHalfRange*0.5;
+//  int l = ServoZero + ServoHalfRange*0.5;
+//  Lifting_arm = ServoZero - ServoHalfRange*.5;
+//  constrain(Lifting_arm, ServoLow, ServoHigh);
 //  constrain(r, ServoLow, ServoHigh);
 //  constrain(l, ServoLow, ServoHigh);
 //
 //  R_Servo.writeMicroseconds(r);
 //  L_Servo.writeMicroseconds(l);
 //  Lifting_Servo.writeMicroseconds(Lifting_arm);
-//  delay(200);
+//  delay(250);
 
   int r = ServoZero - ServoHalfRange;
   int l = ServoZero + ServoHalfRange;
@@ -364,10 +366,10 @@ void overWall(int runTime) {
   constrain(Lifting_arm, ServoLow, ServoHigh);
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
-
+  Lifting_Servo.writeMicroseconds(Lifting_arm);
   R_Servo.writeMicroseconds(r);
   L_Servo.writeMicroseconds(l);
-  Lifting_Servo.writeMicroseconds(Lifting_arm);
+  
   
   delay(runTime);
   liftingArmStop(50);
@@ -463,30 +465,34 @@ void chuteTraverse() {
 }
 
 void wallTraverse() {
-  if(distSensor < 400 && !atWall) {
+  if(distSensor < 350 && !atWall) {
     driveForward(100, 0.2);
   }
   else {
     atWall = true;
   }
   if(atWall && !firstStep) {
-    steps(1000); // first step
+    steps(800); // first step
     firstStep = true;
+    stopDriving(10);
+    liftingArmStop(10);
+    delay(500);
   }
   else if(atWall && !secondStep) {
     steps(500);
     secondStep = true;
+    stopDriving(10);
+    liftingArmStop(10);
+    delay(500);
   }
-//  else if(atWall && !overTheWall) {
-//    stopDriving(10);
-//    liftingArmStop(10);
-//    driveForward(300, .8);
-//    overWall(3500);
-//    overTheWall = true;
-//    stopDriving(10);
-//    liftingArmStop(10);
-//    delay(250);
-//  }
+  else if(atWall && !overTheWall) {
+    //driveForward(200, 0.3); //THIS MIGHT NEED TO BE COMMENTED BACK IN
+    overWall(2500);
+    overTheWall = true;
+    stopDriving(10);
+    liftingArmStop(10);
+    delay(250);
+  }
   else if(overTheWall) {
     stopDriving(10);
     liftingArmStop(10);
@@ -554,7 +560,6 @@ void loop() {
   if (Ch5 <= autonomousActivationFrequency) {
     //medkitPlaced = false;
     //autonomous = true;
-    
     autonomousMode();
     //placeMedkit();
   }
@@ -565,6 +570,7 @@ void loop() {
     Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
     //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
     //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+    //printRC();
     driveServosRC();
     //Serial.println(distSensor);
     //Serial.println(distR);
