@@ -323,8 +323,14 @@ void liftingArmForward(int runTime, double percent) {
   delay(runTime);
 }
 
+void liftingArmStop(int runTime) {
+  Lifting_arm = ServoZero;
+  Lifting_Servo.writeMicroseconds(Lifting_arm);
+  delay(runTime);
+}
+
 void steps(int runTime) {
-  Lifting_arm = ServoZero - ServoHalfRange*(.75);
+  Lifting_arm = ServoZero - ServoHalfRange*(.65);
   int r = ServoZero - ServoHalfRange*(.25);
   int l = ServoZero + ServoHalfRange*(.25);
   constrain(Lifting_arm, ServoLow, ServoHigh);
@@ -335,13 +341,26 @@ void steps(int runTime) {
   L_Servo.writeMicroseconds(l);
   Lifting_Servo.writeMicroseconds(Lifting_arm);
   delay(runTime);
+
   
 }
 
 void overWall(int runTime) {
-  Lifting_arm = ServoZero - ServoHalfRange;
+
+//  liftingArmStop(10);
+//  int r = ServoZero - ServoHalfRange*0.65;
+//  int l = ServoZero + ServoHalfRange*0.65;
+//  constrain(r, ServoLow, ServoHigh);
+//  constrain(l, ServoLow, ServoHigh);
+//
+//  R_Servo.writeMicroseconds(r);
+//  L_Servo.writeMicroseconds(l);
+//  Lifting_Servo.writeMicroseconds(Lifting_arm);
+//  delay(200);
+
   int r = ServoZero - ServoHalfRange;
   int l = ServoZero + ServoHalfRange;
+  Lifting_arm = ServoZero - ServoHalfRange;
   constrain(Lifting_arm, ServoLow, ServoHigh);
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
@@ -349,10 +368,10 @@ void overWall(int runTime) {
   R_Servo.writeMicroseconds(r);
   L_Servo.writeMicroseconds(l);
   Lifting_Servo.writeMicroseconds(Lifting_arm);
-  medkitArmForward(250, 0.6);
-  medkitArmStop(10);
-  delay(runTime);
   
+  delay(runTime);
+  liftingArmStop(50);
+  stopDriving(50);
 }
 
 void autonomousLightSeeking() {
@@ -444,28 +463,33 @@ void chuteTraverse() {
 }
 
 void wallTraverse() {
-  if(distSensor < 300 && !atWall) {
+  if(distSensor < 400 && !atWall) {
     driveForward(100, 0.2);
   }
   else {
     atWall = true;
   }
   if(atWall && !firstStep) {
-    steps(500); // first step
+    steps(1000); // first step
     firstStep = true;
   }
   else if(atWall && !secondStep) {
-    steps(350);
+    steps(500);
     secondStep = true;
-    delay(250);
   }
-  else if(atWall && !overTheWall) {
-    medkitArmForward(200, 0.4);
-    //overWall(500);
-    overTheWall = true;
-  }
+//  else if(atWall && !overTheWall) {
+//    stopDriving(10);
+//    liftingArmStop(10);
+//    driveForward(300, .8);
+//    overWall(3500);
+//    overTheWall = true;
+//    stopDriving(10);
+//    liftingArmStop(10);
+//    delay(250);
+//  }
   else if(overTheWall) {
-    stopDriving(100);
+    stopDriving(10);
+    liftingArmStop(10);
   }
   
 }
