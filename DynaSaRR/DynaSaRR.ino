@@ -72,13 +72,6 @@ int Medkit_speed;     // speed changes for Medkit arm
 bool front_limitSwitch;
 bool back_limitSwitch;
 
-////PID setup
-//double Kp = 2;
-//double Ki = 5;
-//double Kd = 1;
-//double distOut;
-//PID chutePID(&distDiff, &distOut, 0, Kp, Ki, Kd, DIRECT);
-
 // setup() runs once then loop() runs
 void setup() {
   pinMode(Ch1Pin, INPUT); // channel 1 is right stick lateral
@@ -106,10 +99,6 @@ void setup() {
   R_speed = ServoZero;
   Lifting_speed = ServoZero;
   Medkit_speed = ServoZero;
-
-  //chutePID.SetMode(AUTOMATIC);
-  //chutePID.SetOutputLimits(-1, 1); // 1 if closer to right, -1 if closer to left ?
-
 
   //Flash the onboard LED on and Off 10x 
   for (int i = 0; i < 10; i++) {
@@ -210,8 +199,6 @@ void updateSensors() {
   back_limitSwitch = digitalRead(back_limitSwitchPin);
   
   delay(100);
-
-  //Serial.println(distSensor);
 }
 
 void turnLeft(int runTime, double percent) {
@@ -241,13 +228,6 @@ void turnRight(int runTime, double percent) {
 }
 
 void driveForward(int runTime, double percent) {
-  // int subtractValue = 100;
-  // if (distSensor >= distSensorSlowValue) {
-  //   subtractValue = 300;
-  // }
-  // R_Servo.writeMicroseconds(ServoHigh - subtractValue);
-  // L_Servo.writeMicroseconds(ServoLow + subtractValue);
-
   int r = ServoZero - ServoHalfRange*percent;
   int l = ServoZero + ServoHalfRange*percent;
 
@@ -378,8 +358,6 @@ void overWall(int runTime) {
 
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
-  //Serial.print("distance");
-  //Serial.println(distSensor);
 
   if(medkitPlaced == false) {
     if (distSensor < distSensorStopValue) {
@@ -570,10 +548,6 @@ void loop() {
     Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
     //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
     //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
-    //printRC();
     driveServosRC();
-    //Serial.println(distSensor);
-    //Serial.println(distR);
-    //Serial.println(distL);
   }
 }
