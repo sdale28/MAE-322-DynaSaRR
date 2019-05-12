@@ -20,11 +20,11 @@ Servo R_Servo;
 Servo Lifting_Servo;
 Servo Medkit_Servo;
 
-const int distSensorPin = A7;
 const int L_lightSensorPin = A8;
 const int R_lightSensorPin = A9;
-const int distRPin = A6;
-const int distLPin = A5;
+const int F_distSensorPin = A7;
+const int R_distSensorPin = A6;
+const int L_distSensorPin = A5;
 const int front_limitSwitchPin = A4;
 const int back_limitSwitchPin = A3;
 
@@ -59,9 +59,9 @@ const int lightThreshold = 550; // sensor value for detecting target light (vs. 
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
-int distSensor;       // hold front sharp sensor value
-int distR;            // hold right distance sensor value
-int distL;            // hold left distance sensor value
+int F_distSensor;       // hold front sharp sensor value
+int R_distSensor;            // hold right distance sensor value
+int L_distSensor;            // hold left distance sensor value
 double distDiff;      // difference between dist sensors. if positive, closer to right of chute
 int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
 int L_speed;          // speed changes for left wheel
@@ -83,9 +83,9 @@ void setup() {
 
   pinMode(R_lightSensorPin, INPUT); // channel 5 is right knob
   pinMode(L_lightSensorPin, INPUT); // channel 6 is left knob
-  pinMode(distSensorPin, INPUT);
-  pinMode(distRPin, INPUT);
-  pinMode(distLPin, INPUT);
+  pinMode(F_distSensorPin, INPUT);
+  pinMode(R_distSensorPin, INPUT);
+  pinMode(L_distSensorPin, INPUT);
 
   pinMode(front_limitSwitchPin, INPUT);
   pinMode(back_limitSwitchPin, INPUT);
@@ -149,7 +149,6 @@ void driveServosRC() {
   Medkit_Servo.writeMicroseconds(Medkit_arm);
 }
 
-//not used; just for testing
 void printRC() {
   Serial.println(" RC Control Mode ");
   Serial.print("Value Ch1 = ");
@@ -173,7 +172,7 @@ void printSensors() {
   Serial.print("Right Sensor = ");
   Serial.println(R_lightSensor);
   Serial.print("Distance Sensor = ");
-  Serial.println(distSensor);
+  Serial.println(F_distSensor);
 }
 
 void updateSensors() {
@@ -182,18 +181,18 @@ void updateSensors() {
 
   lightSensorDiff = abs(L_lightSensor - R_lightSensor);
 
-  distSensor = analogRead(distSensorPin);
+  F_distSensor = analogRead(F_distSensorPin);
 
   for (int i = 0; i < 4; i++) {
-    distSensor += analogRead(distSensorPin);
-    distR += analogRead(distRPin);
-    distL += analogRead(distLPin);
+    F_distSensor += analogRead(F_distSensorPin);
+    R_distSensor += analogRead(R_distSensorPin);
+    L_distSensor += analogRead(L_distSensorPin);
   }
-  distSensor /= 5;
-  distR /= 5;
-  distL /= 5;
+  F_distSensor /= 5;
+  R_distSensor /= 5;
+  L_distSensor /= 5;
 
-  distDiff = distR - distL;
+  distDiff = R_distSensor - L_distSensor;
 
   front_limitSwitch = digitalRead(front_limitSwitchPin);
   back_limitSwitch = digitalRead(back_limitSwitchPin);
@@ -361,11 +360,11 @@ void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
 
   if(medkitPlaced == false) {
-    if (distSensor < distSensorStopValue) {
+    if (F_distSensor < distSensorStopValue) {
       Serial.println("1");
       if (L_lightSensor <= lightThreshold) {
         stopDriving(10);
-        Serial.println(distSensor);
+        Serial.println(F_distSensor);
         if (lightSensorDiff > 30 ) {
           if (L_lightSensor > R_lightSensor) {
             delay(50);
@@ -403,22 +402,22 @@ void autonomousLightSeeking() {
 
 void chuteTraverse() {
   //chutePID.Compute();
-  //Serial.println(distR);
-  //Serial.println(distL);
+  //Serial.println(R_distSensor);
+  //Serial.println(L_distSensor);
   //Serial.println(distDiff);
   if(inTheChute == false) {
     driveForward(100, 0.2);
-    //Serial.println(distR);
-    //Serial.println(distL);
-    if(distR > 150) {
-      if(distL > 150) {
+    //Serial.println(R_distSensor);
+    //Serial.println(L_distSensor);
+    if(R_distSensor > 150) {
+      if(L_distSensor > 150) {
         inTheChute = true;
         //Serial.println("in");
       }
     }
   }
-   else if(distR > 100) {
-    if(distL > 100) {
+   else if(R_distSensor > 100) {
+    if(L_distSensor > 100) {
       if(distDiff > 75) { // around 2in difference
         turnLeft(10, 0.15);
         //Serial.println("turning left");
@@ -444,7 +443,7 @@ void chuteTraverse() {
 }
 
 void wallTraverse() {
-  if(distSensor < 350 && !atWall) {
+  if(F_distSensor < 350 && !atWall) {
     driveForward(100, 0.2);
   }
   else {
@@ -527,33 +526,36 @@ void loop() {
   // do nothing if the controller is disconnected
   if (Ch5 < ServoLow) {
     stopDriving(10);
-  }
+    medkitArmStop(10);
+    liftingArmStop(10);
+  } else {
 
-  updateSensors();
+    updateSensors();
 
-  if (Ch6 <= autonomousActivationFrequency) {
-    medkitPlaced = false;
-    inTheChute = false;
-    throughTheChute = true; // MAKE SURE TO CHANGE THIS BACK TO FALSE TO TEST LIGHT
-    atWall = false;
-    firstStep = false;
-    secondStep = false;
-    overTheWall = false;
-  }
-  
-  if (Ch5 <= autonomousActivationFrequency) {
-    //medkitPlaced = false;
-    //autonomous = true;
-    autonomousMode();
-    //placeMedkit();
-  }
-  else {
-    Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
-    Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
-    //Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout); //disabled medkit arm
-    Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-    //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-    //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
-    driveServosRC();
+    if (Ch6 <= autonomousActivationFrequency) {
+      medkitPlaced = false;
+      inTheChute = false;
+      throughTheChute = true; // MAKE SURE TO CHANGE THIS BACK TO FALSE TO TEST LIGHT
+      atWall = false;
+      firstStep = false;
+      secondStep = false;
+      overTheWall = false;
+    }
+    
+    if (Ch5 <= autonomousActivationFrequency) {
+      //medkitPlaced = false;
+      //autonomous = true;
+      autonomousMode();
+      //placeMedkit();
+    }
+    else {
+      Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
+      Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
+      //Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout); //disabled medkit arm
+      Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
+      //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
+      //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+      driveServosRC();
+    }
   }
 }
