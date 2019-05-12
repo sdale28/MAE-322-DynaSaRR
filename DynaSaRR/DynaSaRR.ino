@@ -1,4 +1,3 @@
-//#include <PID_v1.h>
 #include <Servo.h>
 
 bool atWall = false;
@@ -20,13 +19,13 @@ Servo R_Servo;
 Servo Lifting_Servo;
 Servo Medkit_Servo;
 
-const int L_lightSensorPin = A8;
 const int R_lightSensorPin = A9;
+const int L_lightSensorPin = A8;
 const int F_distSensorPin = A7;
 const int R_distSensorPin = A6;
 const int L_distSensorPin = A5;
-const int front_limitSwitchPin = A4;
-const int back_limitSwitchPin = A3;
+const int front_limitSwitchPin = 18;
+const int back_limitSwitchPin = 17;
 
 const int R_ServoPin = 0;
 const int L_ServoPin = 1;
@@ -523,15 +522,21 @@ void loop() {
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout); // ch 5 toggles autonomous mode
   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout); // ch 6 fully clockwise resets medkitPlaced
 
+  Ch5 = 0;
+  front_limitSwitch = digitalRead(front_limitSwitchPin);
+  back_limitSwitch = digitalRead(back_limitSwitchPin);
+  Serial.print("Left: ");
+  Serial.println(front_limitSwitch);
+  Serial.print("Back: ");
+  Serial.println(back_limitSwitch);
+
   // do nothing if the controller is disconnected
   if (Ch5 < ServoLow) {
     stopDriving(10);
     medkitArmStop(10);
     liftingArmStop(10);
-  } else {
-
-    updateSensors();
-
+  } 
+  else {
     if (Ch6 <= autonomousActivationFrequency) {
       medkitPlaced = false;
       inTheChute = false;
