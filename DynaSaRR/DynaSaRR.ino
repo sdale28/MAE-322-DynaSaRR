@@ -326,19 +326,20 @@ void steps(int runTime) {
 }
 
 void overWall(int runTime) {
+/*
+ liftingArmStop(10);
+ int r = ServoZero - ServoHalfRange*0.5;
+ int l = ServoZero + ServoHalfRange*0.5;
+ Lifting_arm = ServoZero - ServoHalfRange*.5;
+ constrain(Lifting_arm, ServoLow, ServoHigh);
+ constrain(r, ServoLow, ServoHigh);
+ constrain(l, ServoLow, ServoHigh);
 
-//  liftingArmStop(10);
-//  int r = ServoZero - ServoHalfRange*0.5;
-//  int l = ServoZero + ServoHalfRange*0.5;
-//  Lifting_arm = ServoZero - ServoHalfRange*.5;
-//  constrain(Lifting_arm, ServoLow, ServoHigh);
-//  constrain(r, ServoLow, ServoHigh);
-//  constrain(l, ServoLow, ServoHigh);
-//
-//  R_Servo.writeMicroseconds(r);
-//  L_Servo.writeMicroseconds(l);
-//  Lifting_Servo.writeMicroseconds(Lifting_arm);
-//  delay(250);
+ R_Servo.writeMicroseconds(r);
+ L_Servo.writeMicroseconds(l);
+ Lifting_Servo.writeMicroseconds(Lifting_arm);
+ delay(250);
+*/
 
   int r = ServoZero - ServoHalfRange;
   int l = ServoZero + ServoHalfRange;
@@ -522,6 +523,11 @@ void autonomousMode() {
 void loop() {
   Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout); // ch 5 toggles autonomous mode
   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout); // ch 6 fully clockwise resets medkitPlaced
+
+  // do nothing if the controller is disconnected
+  if (Ch5 < ServoLow) {
+    stopDriving(10);
+  }
 
   updateSensors();
 
