@@ -45,8 +45,6 @@ const int ServoLow = 1000;
 const int ServoHigh = 2000;
 const int ServoZero = 1500;
 const int ServoHalfRange = 500;
-const int MedkitServoLow = 1000; // 1250;
-const int MedkitServoHigh = 2000;// 1750;
 
 const int transmitterTimeout = 21000;
 
@@ -55,6 +53,8 @@ const int autonomousActivationFrequency = 1800; // knob turned completely clockw
 const int distSensorStopValue = 450; // Value of prox sensor indicating stopping distance; 4ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
 const int lightThreshold = 550; // sensor value for detecting target light (vs. noise/reflection)
+const int chuteDistThreshold = 150; // Minimum value of left and right prox sensors for robot to be in chute
+const int distSensorMaxValue = 1000;
 
 int L_lightSensor;    // hold photoresistor value
 int R_lightSensor;    // hold photoresistor value
@@ -63,8 +63,8 @@ int R_distSensor;            // hold right distance sensor value
 int L_distSensor;            // hold left distance sensor value
 double distDiff;      // difference between dist sensors. if positive, closer to right of chute
 int lightSensorDiff;  // difference between L_lightSensor and R_lightSensor
-int L_speed;          // speed changes for left wheel
-int R_speed;          // speed changes for right wheel
+//int L_speed;          // speed changes for left wheel
+//int R_speed;          // speed changes for right wheel
 int Lifting_speed;    // speed changes for lifting arm
 int Medkit_speed;     // speed changes for Medkit arm
 
@@ -94,8 +94,8 @@ void setup() {
   Lifting_Servo.attach(Lifting_ServoPin);
   Medkit_Servo.attach(Medkit_ServoPin);
 
-  L_speed = ServoZero;
-  R_speed = ServoZero;
+  //L_speed = ServoZero;
+  //R_speed = ServoZero;
   Lifting_speed = ServoZero;
   Medkit_speed = ServoZero;
 
@@ -126,9 +126,8 @@ void driveServosRC() {
     R_wheel = Ch2_mod - Ch2 + ServoZero;
   }
 
-  int Medkit_arm = map(Ch3, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh); 
-  int Lifting_arm = map(Ch4, ServoLow, ServoHigh, MedkitServoLow, MedkitServoHigh);
-  
+  int Medkit_arm = Ch3; 
+  int Lifting_arm = Ch4;
 
   constrain(L_wheel, ServoLow, ServoHigh);
   constrain(R_wheel, ServoLow, ServoHigh);
@@ -201,13 +200,13 @@ void updateSensors() {
 
 void turnLeft(int runTime, double percent) {
   int r = ServoZero - ServoHalfRange*percent;
-  int l = ServoZero - ServoHalfRange*percent - 25; // constant offset to account for difference in speeds
+  int l = ServoZero - ServoHalfRange*percent - 25; // constant offset to account for difference in speeds (from direction of rotation)
 
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
 
-  R_Servo.writeMicroseconds(r); //R_speed);
-  L_Servo.writeMicroseconds(l);//1620);
+  R_Servo.writeMicroseconds(r);
+  L_Servo.writeMicroseconds(l);
 
   delay(runTime);
 }
@@ -219,8 +218,8 @@ void turnRight(int runTime, double percent) {
   constrain(r, ServoLow, ServoHigh);
   constrain(l, ServoLow, ServoHigh);
 
-  R_Servo.writeMicroseconds(r); //1450);
-  L_Servo.writeMicroseconds(l);//L_speed);
+  R_Servo.writeMicroseconds(r);
+  L_Servo.writeMicroseconds(l);
 
   delay(runTime);
 }
@@ -358,7 +357,7 @@ void overWall(int runTime) {
 void autonomousLightSeeking() {
   //Serial.println("Autonomous light seeking");
 
-  if(medkitPlaced == false) {
+  if (medkitPlaced == false) {
     if (F_distSensor < distSensorStopValue) {
       Serial.println("1");
       if (L_lightSensor <= lightThreshold) {
@@ -399,29 +398,53 @@ void autonomousLightSeeking() {
 
 }
 
-void chuteTraverse() {
-  //chutePID.Compute();
-  //Serial.println(R_distSensor);
-  //Serial.println(L_distSensor);
-  //Serial.println(distDiff);
-  if(inTheChute == false) {
+void chuteTraverseNew() {
+  if (!inTheChute) {
     driveForward(100, 0.2);
-    //Serial.println(R_distSensor);
-    //Serial.println(L_distSensor);
-    if(R_distSensor > 150) {
+    if ((R_distSensor >= chuteDistThreshold) && (L_distSensor >= chuteDistThreshold)) {
+      inTheChute = true;
+    }
+  }
+  else if (R_distSensor > chuteDistThreshold) {
+    if (distDiff <= 70) {
+      driveForward(5);
+    } 
+    else if (L_distSensor > R_distSensor) {
+      int r_speed = map(distDiff, -distSensorMaxValue, 0, 0, 1);   // map(value, fromLow, fromHigh, toLow, toHigh)
+      turnRight(5, r_speed);
+    }
+    else {
+      int l_speed = map(distDiff, 0, distSensorMaxValue, 0, 1);   // map(value, fromLow, fromHigh, toLow, toHigh)
+      turnLeft(5, l_speed);
+    }
+  }
+  else {
+    //Serial.println("out of chute");
+    driveForward(300, 0.2);
+    stopDriving(100);
+    turnLeft(150, 0.2);
+    stopDriving(500);
+    throughTheChute = true;
+  }
+}
+
+void chuteTraverse() {
+  if (inTheChute == false) {
+    driveForward(100, 0.2);
+    if (R_distSensor > 150) {
       if(L_distSensor > 150) {
         inTheChute = true;
         //Serial.println("in");
       }
     }
   }
-   else if(R_distSensor > 100) {
-    if(L_distSensor > 100) {
+  else if (R_distSensor > 100) {
+    if (L_distSensor > 100) {
       if(distDiff > 75) { // around 2in difference
         turnLeft(10, 0.15);
         //Serial.println("turning left");
       }
-      else if(distDiff < -75) {
+      else if (distDiff < -75) {
         turnRight(10, 0.15);
         //Serial.println("turning right");
       }
@@ -430,7 +453,7 @@ void chuteTraverse() {
         driveForward(10, 0.15);
       }
     }
-   }
+  }
   else {
     //Serial.println("out of chute");
     driveForward(300, 0.2);
@@ -448,6 +471,7 @@ void wallTraverse() {
   else {
     atWall = true;
   }
+  
   if(atWall && !firstStep) {
     steps(800); // first step
     firstStep = true;
