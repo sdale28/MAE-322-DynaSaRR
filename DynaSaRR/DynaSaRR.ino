@@ -52,7 +52,7 @@ const int autonomousActivationFrequency = 1800; // knob turned completely clockw
 
 const int distSensorStopValue = 450; // Value of prox sensor indicating stopping distance; 4ish inches
 const int distSensorSlowValue = 2000; // 2000 = 1 foot ish
-const int lightThreshold = 550; // sensor value for detecting target light (vs. noise/reflection)
+const int lightThreshold = 300;//550; // sensor value for detecting target light (vs. noise/reflection)
 const int chuteDistThreshold = 150; // Minimum value of left and right prox sensors for robot to be in chute
 const int distSensorMaxValue = 1000;
 
@@ -369,48 +369,104 @@ void overWall(int runTime) {
   stopDriving(50);
 }
 
-void autonomousLightSeeking() {
-  //Serial.println("Autonomous light seeking");
+void autonomousLightSeekingNew() {
+  const int chuteEntranceThreshold = 100;
+  const int distDiffThreshold = 70;
+  const int chuteThreshold = 70;
 
-  if (medkitPlaced == false) {
-    if (F_distSensor < distSensorStopValue) {
-      Serial.println("1");
-      if (L_lightSensor <= lightThreshold) {
-        stopDriving(10);
-        Serial.println(F_distSensor);
-        if (lightSensorDiff > 30 ) {
-          if (L_lightSensor > R_lightSensor) {
-            delay(50);
-            turnLeft(150, 0.2); // 0.1 is too low--doesn't drive
-            driveForward(100, 0.2);
-            Serial.println("turn left");
-          }
-          else {
-            delay(50);
-            turnRight(10, 0.2);
-            driveForward(100, 0.2);
-            Serial.println("turn right");
-          }
+  const int lightSensorMaxValue = 900;
+  const int lightSensorDiffThreshold = 40;
+
+  // Serial.print("Right: ");
+  // Serial.println(R_distSensor);
+  // Serial.print("Left: ");
+  // Serial.println(L_distSensor);
+
+  // Serial.print("distDiff: ");
+  // Serial.println(distDiff);
+
+  if ((L_lightSensor > R_lightSensor) && (-lightSensorDiff > lightSensorDiffThreshold)) {
+    double r_speed = map(-lightSensorDiff, 0, distSensorMaxValue, 0.1, 1);   // map(value, fromLow, fromHigh, toLow, toHigh)
+    turnRight(10, r_speed);
+  }
+  else if ((R_lightSensor > L_lightSensor) && (lightSensorDiff > lightSensorDiffThreshold)) {
+    double l_speed = map(lightSensorDiff, 0, lightSensorMaxValue, 0.1, 1);
+    turnLeft(10, l_speed);
+  }
+  else {
+    driveForward(10, 0.2);
+  }
+}
+
+void autonomousLightSeeking() {
+  Serial.println("Autonomous light seeking");
+
+/*
+  if (F_distSensor < distSensorStopValue) {
+    if (L_lightSensor <= lightThreshold) {
+      if (lightSensorDiff > 70) {
+        if (L_lightSensor > R_lightSensor) {
+          Serial.println("Left");
+          turnLeft(10, 0.2);
         }
         else {
-          driveForward(200, 0.2); // works on 2000 but takes too long to recognize distance
-          Serial.println("forward");
+          Serial.println("Right");
+          turnRight(10, 0.2);
         }
-      } 
-      else {
-        turnRight(10, 0.2);
-          Serial.println("lost");
-        updateSensors();
       }
-    }
+      else {
+        Serial.println("Forward");
+        driveForward(10, 0.2);
+      }
+    } 
     else {
-      stopDriving(100);
-      delay(500);
-      placeMedkit();
+      Serial.println("Lost light");
+      turnRight(5, 0.2);
     }
-    
   }
-
+  else {
+    Serial.println("Light reached");
+    stopDriving(100);
+    delay(100);
+  }
+*/
+/*
+  if (F_distSensor < distSensorStopValue) {
+    Serial.println("1");
+    if (L_lightSensor <= lightThreshold) {
+      stopDriving(10);
+      Serial.println(F_distSensor);
+      if (lightSensorDiff > 30 ) {
+        if (L_lightSensor > R_lightSensor) {
+          delay(50);
+          turnLeft(150, 0.2); // 0.1 is too low--doesn't drive
+          driveForward(100, 0.2);
+          Serial.println("turn left");
+        }
+        else {
+          delay(50);
+          turnRight(10, 0.2);
+          driveForward(100, 0.2);
+          Serial.println("turn right");
+        }
+      }
+      else {
+        driveForward(200, 0.2); // works on 2000 but takes too long to recognize distance
+        Serial.println("forward");
+      }
+    } 
+    else {
+      turnRight(10, 0.2);
+        Serial.println("lost");
+      updateSensors();
+    }
+  }
+  else {
+    stopDriving(100);
+    delay(500);
+    placeMedkit();
+  }
+  */
 }
 
 void chuteTraverse() {
@@ -564,11 +620,12 @@ void autonomousMode() {
   //Serial.println(distDiff);
 
   // wallTraverse();
-  chuteTraverse();
-  if (throughTheChute && !medkitPlaced) {
-    Serial.println("light");
+  //chuteTraverse();
+  //if (throughTheChute && !medkitPlaced) {
+    //Serial.println("light");
+    //printSensors();
     autonomousLightSeeking();
-  }
+  //}
   //Serial.println("Autonomous");
 }
 
@@ -588,7 +645,7 @@ void loop() {
     if (Ch6 <= autonomousActivationFrequency) {
       medkitPlaced = false;
       inTheChute = false;
-      throughTheChute = false;
+      throughTheChute = true; // change me daddie!!!!!!!!!!!!!!!!!!!!
       atWall = false;
       firstStep = false;
       secondStep = false;
