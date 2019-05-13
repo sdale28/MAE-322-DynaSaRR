@@ -413,48 +413,57 @@ void autonomousLightSeeking() {
 
 }
 
-void chuteTraverseNew() {
+void chuteTraverse() {
+  const int chuteEntranceThreshold = 100;
+  const int distDiffThreshold = 70;
+  const int chuteThreshold = 70;
+
+  // Serial.print("Right: ");
+  // Serial.println(R_distSensor);
+  // Serial.print("Left: ");
+  // Serial.println(L_distSensor);
+
+  // Serial.print("distDiff: ");
+  // Serial.println(distDiff);
+
   if (!inTheChute) {
     driveForward(100, 0.2);
-    if ((R_distSensor >= chuteDistThreshold) && (L_distSensor >= chuteDistThreshold)) {
+    if ((R_distSensor > chuteEntranceThreshold) && (L_distSensor > chuteEntranceThreshold)) {
       inTheChute = true;
     }
   }
-  else if (R_distSensor > chuteDistThreshold) {
-    if (distDiff <= 70) {
-      driveForward(5, 0.2);
-    } 
-    else if (L_distSensor > R_distSensor) {
-      int r_speed = map(distDiff, -distSensorMaxValue, 0, 0, 1);   // map(value, fromLow, fromHigh, toLow, toHigh)
-      turnRight(5, r_speed);
+  else if (inTheChute && ((R_distSensor > chuteThreshold) || (L_distSensor > chuteThreshold))) {
+    if ((L_distSensor > R_distSensor) && (-distDiff > distDiffThreshold)) {
+      double r_speed = map(-distDiff, 0, distSensorMaxValue, 0.1, 1);   // map(value, fromLow, fromHigh, toLow, toHigh)
+      turnRight(10, r_speed);
+    }
+    else if ((R_distSensor > L_distSensor) && (distDiff > distDiffThreshold)) {
+      double l_speed = map(distDiff, 0, distSensorMaxValue, 0.1, 1);
+      turnLeft(10, l_speed);
     }
     else {
-      int l_speed = map(distDiff, 0, distSensorMaxValue, 0, 1);
-      turnLeft(5, l_speed);
+      driveForward(10, 0.2);
     }
   }
   else {
-    //Serial.println("out of chute");
+    Serial.println("out of chute");
     driveForward(300, 0.2);
     stopDriving(100);
-    turnLeft(150, 0.2);
+    turnRight(150, 0.2);
     stopDriving(500);
     throughTheChute = true;
   }
 }
 
-void chuteTraverse() {
+void chuteTraverseOld() {
   int chuteEntranceThreshold = 100; //150 originally
-  int distDiffThreshold = 50;
+  int distDiffThreshold = 75;
   int chuteThreshold = 70;
 
   if (inTheChute == false) {
     driveForward(100, 0.25);
-    if (R_distSensor > chuteEntranceThreshold) {
-      if(L_distSensor > chuteEntranceThreshold) {
-        inTheChute = true;
-        //Serial.println("in");
-      }
+    if ((R_distSensor > chuteEntranceThreshold) && (L_distSensor > chuteEntranceThreshold)) {
+      inTheChute = true;
     }
     Serial.println("Not in Chute.... yet");
   }
@@ -475,7 +484,6 @@ void chuteTraverse() {
   }
   else {
     Serial.println("Out of chute.");
-    //Serial.println("out of chute");
     driveForward(300, 0.2);
     stopDriving(100);
     turnLeft(150, .2);
@@ -553,14 +561,15 @@ void placeMedkit() {
 
 void autonomousMode() {
   updateSensors();
-  
+  //Serial.println(distDiff);
+
+  // wallTraverse();
   chuteTraverse();
   if (throughTheChute && !medkitPlaced) {
     Serial.println("light");
     autonomousLightSeeking();
   }
   //Serial.println("Autonomous");
-  //wallTraverse();
 }
 
 void loop() {
@@ -568,9 +577,6 @@ void loop() {
   Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout); // ch 6 fully clockwise resets medkitPlaced
 
   updateSensors();
-  //printSensors();
-  // Serial.print("Front Dist Sensor: ");
-  // Serial.println(F_distSensor);
 
   // do nothing if the controller is disconnected
   if (Ch5 < ServoLow) {
@@ -582,7 +588,7 @@ void loop() {
     if (Ch6 <= autonomousActivationFrequency) {
       medkitPlaced = false;
       inTheChute = false;
-      throughTheChute = false; // MAKE SURE TO CHANGE THIS BACK TO FALSE TO TEST LIGHT
+      throughTheChute = false;
       atWall = false;
       firstStep = false;
       secondStep = false;
@@ -590,18 +596,14 @@ void loop() {
     }
     
     if (Ch5 <= autonomousActivationFrequency) {
-      //medkitPlaced = false;
-      //autonomous = true;
       autonomousMode();
-      //placeMedkit();
     }
     else {
       Ch1 = pulseIn(Ch1Pin, HIGH, transmitterTimeout);
       Ch2 = pulseIn(Ch2Pin, HIGH, transmitterTimeout);
       Ch3 = pulseIn(Ch3Pin, HIGH, transmitterTimeout);
       Ch4 = pulseIn(Ch4Pin, HIGH, transmitterTimeout);
-      //Ch5 = pulseIn(Ch5Pin, HIGH, transmitterTimeout);
-      //Ch6 = pulseIn(Ch6Pin, HIGH, transmitterTimeout);
+
       driveServosRC();
     }
   }
