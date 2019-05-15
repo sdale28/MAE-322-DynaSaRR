@@ -1,0 +1,15 @@
+\subsection{Logbook}
+% \begin{longtable}
+%     %\csvautotabular{./resources/logbook_v2.csv}
+%     \csvautolongtable{./resources/logbook_v2.csv}
+% \end{longtable}
+
+
+\csvreader[
+  longtable=lrrrr,
+  table head=
+    \toprule\bfseries Item &\bfseries Alpha category (\%) \\ \midrule\endhead
+    \bottomrule\endfoot,
+  late after line=\\,
+  before reading={\catcode`\#=12},after reading={\catcode`\#=6}
+]{./resources/logbook_v2.csv}{1=\Item,2=\Percentage}{\Item & \Percentage}

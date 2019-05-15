@@ -16,6 +16,7 @@ Board: Teensy 3.5
 
 ## Project Reports
  - [Preliminary Design Report][12]
+ - [Final Design Report][14] 
 
 <br/>
 
@@ -77,3 +78,4 @@ Brian Patton's super helpful [video series][5].
   [11]:https://github.com/sdale28/MAE-322-DynaSaRR
   [12]:PreliminaryDesignReport/MAE_322_DynaSaRR.pdf
   [13]:https://www.arduino.cc/en/Main/OldSoftwareReleases#previous
+  [14]:Final_Design_Report/MAE_322_Final_Design_Report_DynaSaRR.pdf
